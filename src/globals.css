@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #280070;
+  --color-page-bg: #f9f9f9;
+}
+
+@layer base {
+  body {
+    @apply bg-page-bg text-gray-900 antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  button, select, input[type="checkbox"], input[type="radio"], input[type="button"], input[type="submit"] {
+    @apply cursor-pointer;
+  }
+}
+
+.primary-bg {
+  background-color: #280070;
+}
+
+.primary-text {
+  color: #280070;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

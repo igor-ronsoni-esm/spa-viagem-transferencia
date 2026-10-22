@@ -1,0 +1,6 @@
+site_name: spa-gestao-documento-terceiro
+site_description: SPA para centralizar a gestão de documento de terceiros
+plugins:  
+  - techdocs-core
+nav:  
+  - Início: index.md

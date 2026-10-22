@@ -1,0 +1,93 @@
+stages:
+  - verify
+  - prepare
+  - build
+  - test
+  - review
+  - release
+  - deploy
+  - post-deploy
+  - dynamic-tests
+  - post-tests
+  - staging-validation
+
+image: $DOCKER_REGISTRY/tools/node:20.10.0-bullseye-slim
+
+
+variables:
+    PROJECT: "transferencia"
+    DOCKER_OPTS: "--no-cache --build-arg version=$CI_COMMIT_REF_NAME"
+    DOCKER_IMAGE: "$DOCKER_REGISTRY/$PROJECT/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME"
+
+include:
+  - project: esm/tecnologia/gitlab/pipeline-scripts
+    file: .create-release.yml
+  - project: esm/tecnologia/gitlab/pipeline-scripts
+    file: .deploy.yml
+  - project: esm/tecnologia/gitlab/pipeline-scripts
+    file: .sonarqube-scanner-cli.yml
+  - project: esm/tecnologia/gitlab/pipeline-scripts
+    file: .eslint-scanner.yml
+  - project: esm/tecnologia/gitlab/pipeline-scripts
+    file: .default.yml
+  - project: esm/tecnologia/gitlab/pipeline-scripts
+    file: .container-scanning.yml
+
+
+coverage:
+  stage: test
+  tags:
+    - docker
+  image: cypress/browsers
+  before_script:
+    - npm install
+    - npx cypress install
+  script:
+    - npm run cypress:component
+  # O job sonarqube-check (.sonarqube-scanner-cli.yml) declara `dependencies: [coverage]`, mas
+  # só recebe o lcov se ele for publicado como artefato daqui. Sem isto o caminho configurado
+  # em sonar.javascript.lcov.reportPaths não existe no runner do Sonar e tudo vira 0%.
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - coverage/
+  # Sem `rules`, este job só entrava no pipeline da branch — e o sonarqube-check só existe no
+  # pipeline do merge request. Sendo pipelines distintos, o `dependencies: [coverage]` de lá
+  # não encontrava este job e baixava nada, o que fazia o scanner logar
+  # "No LCOV files were found using ./coverage/lcov.info" e reportar 0% de cobertura.
+  # A 1ª regra o coloca no pipeline do MR (mesma condição usada pelo cypress-e2e); a 2ª
+  # preserva a execução no push da branch.
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+    - if: $CI_COMMIT_BRANCH
+
+
+docker-image:
+  stage: build
+  script:
+    - docker build $DOCKER_OPTS -t $DOCKER_IMAGE .
+    - docker push $DOCKER_IMAGE
+    - docker image rm $DOCKER_IMAGE
+    - echo $DOCKER_IMAGE
+
+
+cypress-e2e:
+  image: harbor.expressosaomiguel.tec.br/tools/cypress-base:14.17.0
+  tags:
+    - docker
+  stage: staging-validation
+  script:
+    - npm install
+    - npx cypress install
+    - npm run e2e
+  artifacts:
+    when: always
+    paths:
+      - cypress/videos/
+      - cypress/screenshots/
+      - cypress/results/
+  when: manual
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+

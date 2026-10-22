@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "Agency": {
+      "title": "Agency",
+      "description": "Logistics agency/unit",
+      "type": "object",
+      "properties": {
+        "nome": { "type": "string" },
+        "sigla": { "type": "string" }
+      },
+      "required": ["nome", "sigla"]
+    },
+    "Line": {
+      "title": "Line",
+      "description": "Pre-configured travel line",
+      "type": "object",
+      "properties": {
+        "nome": { "type": "string" },
+        "origemAgenciaId": { "type": "string" },
+        "destinoAgenciaId": { "type": "string" },
+        "horarioSaida": { "type": "string" },
+        "diasExecucao": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["nome", "origemAgenciaId", "destinoAgenciaId", "horarioSaida"]
+    },
+    "Trip": {
+      "title": "Trip (Viagem)",
+      "description": "A travel instance",
+      "type": "object",
+      "properties": {
+        "linhaId": { "type": "string" },
+        "agenciaOrigemSigla": { "type": "string" },
+        "agenciaDestinoSigla": { "type": "string" },
+        "status": { "type": "string", "enum": ["GERADA", "AGUARDANDO_AUTORIZACAO", "NORMAL", "CANCELADA", "INICIADA"] },
+        "tipoViagem": { "type": "string", "enum": ["Normal", "Extra"] },
+        "tipoTrecho": { "type": "string", "enum": ["Transferencia", "Vazio"] },
+        "horarioSaida": { "type": "string" },
+        "dataViagem": { "type": "string", "format": "date-time" },
+        "motoristas": { "type": "array" },
+        "veiculos": { "type": "array" },
+        "ctes": { "type": "array" },
+        "ocorrencias": { "type": "array" },
+        "documentosFiscais": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["status", "tipoViagem", "tipoTrecho", "dataViagem"]
+    },
+    "Driver": {
+      "title": "Driver",
+      "description": "Company driver",
+      "type": "object",
+      "properties": {
+        "nome": { "type": "string" },
+        "cpf": { "type": "string" }
+      },
+      "required": ["nome"]
+    },
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "Company truck",
+      "type": "object",
+      "properties": {
+        "placa": { "type": "string" },
+        "modelo": { "type": "string" }
+      },
+      "required": ["placa"]
+    }
+  },
+  "firestore": {
+    "/agencies/{agencyId}": { "schema": "Agency", "description": "Agencies" },
+    "/lines/{lineId}": { "schema": "Line", "description": "Travel lines" },
+    "/trips/{tripId}": { "schema": "Trip", "description": "Trips" },
+    "/drivers/{driverId}": { "schema": "Driver", "description": "Drivers" },
+    "/vehicles/{vehicleId}": { "schema": "Vehicle", "description": "Vehicles" }
+  }
+}

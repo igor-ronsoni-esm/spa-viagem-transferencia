@@ -1,0 +1,6 @@
+{
+  "name": "LogiTrip - Gestão de Viagens Logísticas",
+  "description": "Sistema completo para controle de viagens, escalas, motoristas, veículos e documentos fiscais (CTe, MDF-e, CIOT).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

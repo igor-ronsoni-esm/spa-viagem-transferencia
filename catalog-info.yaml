@@ -1,0 +1,35 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: spa-viagem-transferencia
+  title: spa-viagem-transferencia
+  description: SPA para controle de viagens de transferencia
+  annotations:
+    gitlab.com/project-id: '?'
+    sentry.io/project-slug: '/esm/spa-viagem-transferencia'
+    sonarqube.org/project-key: esm_spa-viagem-transferencia
+    goharbor.io/repository-slug: transferencia/spa-viagem-transferencia
+    argocd/app-name: spa-viagem-transferencia
+    backstage.io/kubernetes-label-selector: 'app=spa-viagem-transferencia'
+    
+  tags: 
+    - next
+    - docker
+    - web
+    - sentry
+    - uptime
+    - variavelambiente
+    - sonarqube
+    - argocd
+  links:
+    - title: URL Produção
+      url: https://spa-viagem-transferencia.cloud.expressosaomiguel.tec.br
+    - title: URL Staging
+      url: https://spa-viagem-transferencia.stg.expressosaomiguel.tec.br
+
+
+spec:
+  type: service
+  lifecycle: experimental
+  owner: transferencia
+  system: tecnologia
