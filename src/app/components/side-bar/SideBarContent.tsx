@@ -51,6 +51,8 @@ export default function SideBarContent() {
   const [tabSelecionada, setTabSelecionada] = useState<TabId>(TabId.PENDENTES);
   const [pesquisa, setPesquisa] = useState<string>("");
 
+  const dataSelecionada = searchParams.get("data");
+
   const viagensFiltradas = viagens.filter((viagem) => {
     if (tabSelecionada === TabId.PENDENTES) return isViagemPendente(viagem.viagem.chaveStatus);
     if (tabSelecionada === TabId.RESOLVIDAS) return isViagemPronta(viagem.viagem.chaveStatus);
@@ -84,7 +86,7 @@ export default function SideBarContent() {
   const fetchViagens = async () => {
     try {
       setLoading(true)
-      const resultado = await fetchSafe(buscarViagens);
+      const resultado = await fetchSafe(() => buscarViagens(dataSelecionada));
       setViagens(resultado.viagens)
       handleTotais(resultado.viagens)
     } 
@@ -100,18 +102,18 @@ export default function SideBarContent() {
     const prontas = resultado.filter((v) => isViagemPronta(v.viagem.chaveStatus)).length;
     const pendentes = resultado.filter((v) => isViagemPendente(v.viagem.chaveStatus)).length;
 
-    const queryParams = new URLSearchParams();
+    const queryParams = new URLSearchParams(searchParams.toString());
     queryParams.set("total", total.toString());
     queryParams.set("realizadas", realizadas.toString());
     queryParams.set("prontas", prontas.toString());
     queryParams.set("pendentes", pendentes.toString());
-    router.push(`?${queryParams.toString()}`);
+    router.replace(`?${queryParams.toString()}`, {scroll: false});
   }
 
   useEffect(() => {
-    fetchViagens()
-  }, [])
-
+    void fetchViagens()
+  }, [dataSelecionada])
+  
   return (
     <div className="flex flex-col border-r border-gray-100 bg-white shrink-0 w-80 p-2">
       <div className="border-b border-gray-50 flex flex-col gap-1.5 shrink-0">
@@ -128,7 +130,7 @@ export default function SideBarContent() {
 
         <SelecaoData />
       </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 overflow-y-hidden">
         <div className="flex items-center justify-between mt-1">
           <button
             onClick={() => {}}
@@ -171,18 +173,18 @@ export default function SideBarContent() {
             </button>
           ))}
         </div>
+        {loading ? (
+          <SideBarSkeleton />
+        ) : (
+          <ListagemViagens viagens={viagensPesquisadas} />
+        )}
+        {!loading && viagensPesquisadas.length <= 0 && (
+          <div className="text-center py-10 opacity-40">
+            <ClipboardCheck className="w-8 h-8 mx-auto mb-2" />
+            <p className="text-[10px] font-bold">Nenhuma viagem</p>
+          </div>
+        )}
       </div>
-      {loading ? (
-        <SideBarSkeleton />
-      ) : (
-        <ListagemViagens viagens={viagensPesquisadas} />
-      )}
-      {!loading && viagensPesquisadas.length <= 0 && (
-        <div className="text-center py-10 opacity-40">
-          <ClipboardCheck className="w-8 h-8 mx-auto mb-2" />
-          <p className="text-[10px] font-bold">Nenhuma viagem</p>
-        </div>
-      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { ViagemOutput } from "@modules/domain/viagem/schemas/resultado-consulta-
 import { STATUS_CONFIG } from "../../constants";
 import { cn } from "@modules/utils/css.util";
 import { useRouter, useSearchParams } from "next/navigation";
-import { isTipoTransferenciaExtra } from "@/src/modules/lib/validacoes";
+import { isTipoTransferenciaEscala, isTipoTransferenciaExtra, isTipoTransferenciaRotaAlternativa } from "@/src/modules/lib/validacoes";
 
 type Props = {
   viagem: ViagemOutput;
@@ -23,8 +23,19 @@ export function CardViagem({ viagem }: Readonly<Props>) {
     router.push(`?${params.toString()}`);
   };
 
-  const isSelected =
-    searchParams.get("codigo-viagem") === String(viagem.viagem.execucao.codigo);
+  const isSelected = searchParams.get("codigo-viagem") === String(viagem.viagem.execucao.codigo);
+  let tipoViagem = "Extra";
+  let cssTipoViagem = "";
+  if (isTipoTransferenciaExtra(viagem.viagem.tipoTransferencia)) {
+    tipoViagem = "Extra";
+    cssTipoViagem = "text-purple-700 bg-purple-50 border-purple-200/60";
+  } else if (isTipoTransferenciaEscala(viagem.viagem.tipoTransferencia)) {
+    tipoViagem = "Escala";
+    cssTipoViagem = "text-blue-700 bg-blue-50 border-blue-200/60";
+  } else if (isTipoTransferenciaRotaAlternativa(viagem.viagem.tipoTransferencia)) {
+    tipoViagem = "Rota Alternativa";
+    cssTipoViagem = "text-purple-700 bg-purple-50 border-purple-200/60";
+  }
 
   return (
     <div
@@ -36,7 +47,7 @@ export function CardViagem({ viagem }: Readonly<Props>) {
           : "border-gray-100 hover:border-primary/30",
       )}
     >
-      <div className="flex flex-row justify-between items-center">
+      <div className="flex flex-row justify-between items-center gap-1">
         <div className="flex items-center gap-1.5 overflow-hidden">
           {viagem.viagem.codigo !== undefined && viagem.viagem.codigo !== null && viagem.viagem.codigo !== 0 && (
             <span className="text-[10px] font-black text-primary bg-primary/10 px-1 rounded">
@@ -46,14 +57,10 @@ export function CardViagem({ viagem }: Readonly<Props>) {
           <span
             className={cn(
               "inline-block text-[8px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider",
-              isTipoTransferenciaExtra(viagem.viagem.tipoTransferencia)
-                ? "text-purple-700 bg-purple-50 border-purple-200/60"
-                : "text-blue-700 bg-blue-50 border-blue-200/60",
+              cssTipoViagem,
             )}
           >
-            {isTipoTransferenciaExtra(viagem.viagem.tipoTransferencia)
-              ? "Extra"
-              : "Escala"}
+            {tipoViagem}
           </span>
         </div>
         <span
@@ -67,12 +74,10 @@ export function CardViagem({ viagem }: Readonly<Props>) {
         </span>
       </div>
       <div className="flex justify-between items-center mt-2">
-        <div className="max-w-37.5">
-          <div className="mt-0.5">
-            <h3 className="font-bold text-xs text-gray-800 group-hover:text-primary transition-colors truncate">
-              {viagem.linha.descricao || "Linha Extra"}
-            </h3>
-          </div>
+        <div className="flex flex-col w-full gap-1">
+          <h3 className="font-bold text-xs text-gray-800 group-hover:text-primary transition-colors truncate">
+            {viagem.linha.descricao || "Linha Extra"}
+          </h3>
           <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
             <Clock className="w-2.5 h-2.5 shrink-0" />
             <span className="truncate">

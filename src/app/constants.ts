@@ -4,10 +4,10 @@ import { Empresa } from './types';
 export const COLORS = {
   primary: '#280070',
   secondary: '#f9f9f9',
-  success: '#10b981', // Green
-  info: '#3b82f6',    // Blue
-  muted: '#6b7280',   // Gray
-  danger: '#ef4444',  // Red
+  success: '#10b981',
+  info: '#3b82f6',
+  muted: '#6b7280',
+  danger: '#ef4444',
 };
 
 export const STATUS_CONFIG = {

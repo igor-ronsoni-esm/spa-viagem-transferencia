@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { converterParaUTC } from "@modules/utils/data.util";
 
 export const FiltroViagensSchema = z.object({
   codigoEmpresa: z.number(),
-  dataReferencia: z.date().default(new Date()),
+  dataReferencia: z.string().default(converterParaUTC(new Date()).toISOString()),
   direcao: z.string().default("O"),
   viagensPendentes: z.boolean().default(true),
   filtros: z.object({

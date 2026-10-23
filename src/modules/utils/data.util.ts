@@ -26,3 +26,38 @@ export function diaSeguinteISO(dataISO: string): string {
   const proximo = new Date(Date.UTC(ano, mes - 1, dia + 1));
   return proximo.toISOString().slice(0, 10);
 }
+
+export function converterParaUTC(data: Date): Date {
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: FUSO_NEGOCIO,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(data);
+
+  const valores = Object.fromEntries(
+    partes.map(({ type, value }) => [type, Number(value)]),
+  );
+
+  return new Date(
+    Date.UTC(
+      valores.year,
+      valores.month - 1,
+      valores.day,
+      valores.hour,
+      valores.minute,
+      valores.second,
+      data.getMilliseconds(),
+    ),
+  );
+}
+
+export function dataAoMeioDia(dataISO: string): Date {
+  const [ano, mes, dia] = dataISO.split("-").map(Number);
+
+  return new Date(Date.UTC(ano, mes - 1, dia, 12, 0, 0, 0));
+}
