@@ -9,6 +9,16 @@ const FORMATADOR_DATA_ISO = new Intl.DateTimeFormat("en-CA", {
   day: "2-digit",
 });
 
+const FORMATADOR_DATA_HORA_ISO = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: FUSO_NEGOCIO,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
 /** Data de hoje no formato `YYYY-MM-DD`, no fuso do negócio. `agora` existe para os testes. */
 export function hojeISO(agora: Date = new Date()): string {
   return FORMATADOR_DATA_ISO.format(agora);
@@ -60,4 +70,8 @@ export function dataAoMeioDia(dataISO: string): Date {
   const [ano, mes, dia] = dataISO.split("-").map(Number);
 
   return new Date(Date.UTC(ano, mes - 1, dia, 12, 0, 0, 0));
+}
+
+export function dataHoraISO(agora: Date = new Date()): string {
+  return FORMATADOR_DATA_HORA_ISO.format(agora);
 }

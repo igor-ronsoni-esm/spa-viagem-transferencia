@@ -4,7 +4,7 @@ import { ResponseServerAction, success, error } from "@modules/utils/handling/re
 import { ResultadoConsultaViagensOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
 import { ConsultarViagensUseCase } from "@modules/domain/viagem/usecases/consultar-viagens.usecase";
 import { container } from "@modules/domain/DI";
-import { converterParaUTC, dataAoMeioDia, hojeISO } from "../modules/utils/data.util";
+import { dataAoMeioDia } from "../modules/utils/data.util";
 
 
 export async function buscarViagens(dataSelecionada: string): Promise<ResponseServerAction<ResultadoConsultaViagensOutput>> {
@@ -17,7 +17,8 @@ export async function buscarViagens(dataSelecionada: string): Promise<ResponseSe
       viagensPendentes: true,
       filtros: {
         status: "T"
-      }
+      },
+      paginacao: { page: 1, limit: -1 }
     });
   
     return success(viagens);

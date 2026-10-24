@@ -38,7 +38,9 @@ const OcorrenciaSchema = z.enum([
   "VIAGEM_CANCELADA",
   "VIAGEM_COMPARTILHADA",
   "VIAGEM_DISPONIBILIZADA",
-  "VIAGEM_INICIADA"
+  "VIAGEM_INICIADA",
+  "PROCESSAMENTO_DOCUMENTOS_TERCEIRO",
+  "DESCONHECIDO"
 ]);
 
 const TipoTransferenciaSchema = z.enum(["ESCALA", "EXTRA", "ROTA_ALTERNATIVA"]);
@@ -52,13 +54,13 @@ const viagemConfiguracao = z.object({
   tipoTransferencia: TipoTransferenciaSchema,
   tipo: TipoSchema,
   status: z.string().nullable(),
-  chaveStatus: OcorrenciaSchema.nullable(),
+  chaveStatus: OcorrenciaSchema.nullable().catch("DESCONHECIDO").default("DESCONHECIDO"),
   execucao: execucao,
   dataSaida: z.string(),
   dataChegada: z.string()
 });
 
-const escala = z.object({
+const EscalaSchema = z.object({
   dia: z.number(),
   dataInicio: z.string(),
   dataFim: z.string()
@@ -82,7 +84,7 @@ const ViagemSchema = z.object({
 })
 
 export const ResultadoConsultaViagensSchema = z.object({
-  escala: escala,
+  escala: EscalaSchema,
   paginacao: paginacao,
   viagens: z.array(ViagemSchema)
 });
@@ -92,5 +94,7 @@ export type ViagemOutput = z.infer<typeof ViagemSchema>;
 
 export const OcorrenciaViagem = OcorrenciaSchema.enum;
 export const TipoTransferencia = TipoTransferenciaSchema.enum;
+
 export type OcorrenciaViagemOutput = z.infer<typeof OcorrenciaSchema>;
 export type TipoTransferenciaOutput = z.infer<typeof TipoTransferenciaSchema>;
+export type EscalaOutput = z.infer<typeof EscalaSchema>;

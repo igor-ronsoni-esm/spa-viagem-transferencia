@@ -12,13 +12,15 @@ export const COLORS = {
 
 export const STATUS_CONFIG = {
   [OcorrenciaViagem.PRE_VIAGEM]: { label: 'Pré viagem', color: 'bg-blue-100', text: 'text-blue-700' },
-  [OcorrenciaViagem.AGUARDANDO_AUTORIZACAO]: { label: 'Aguard. Autorização', color: 'bg-orange-100', text: 'text-orange-700' },
+  [OcorrenciaViagem.AGUARDANDO_AUTORIZACAO]: { label: 'Aguardando Autorização', color: 'bg-orange-100', text: 'text-orange-700' },
   [OcorrenciaViagem.REJEICAO_AUTORIZACAO]: { label: 'Autorização Rejeitada', color: 'bg-red-100', text: 'text-red-700' },
   [OcorrenciaViagem.VIAGEM_DISPONIBILIZADA]: { label: 'Disponibilizada', color: 'bg-green-100', text: 'text-green-700' },
   [OcorrenciaViagem.VIAGEM_INICIADA]: { label: 'Iniciada', color: 'bg-green-700', text: 'text-white' },
   [OcorrenciaViagem.FIM_DE_VIAGEM]: { label: 'Finalizada', color: 'bg-gray-700', text: 'text-white' },
   [OcorrenciaViagem.VIAGEM_CANCELADA]: { label: 'Cancelada', color: 'bg-red-700', text: 'text-white' },
-  DESCONHECIDO: { label: 'Não Gerada', color: 'bg-gray-200', text: 'text-gray-500' },
+  [OcorrenciaViagem.PROCESSAMENTO_DOCUMENTOS_TERCEIRO]: { label: 'Processamento Docs Terceiro', color: 'bg-orange-100', text: 'text-orange-700' },
+  SEM_STATUS: { label: 'Não Gerada', color: 'bg-gray-200', text: 'text-gray-500' },
+  DESCONHECIDO: { label: 'Status Desconhecido', color: 'bg-gray-200', text: 'text-gray-500' },
 };
 
 export const FISCAL_STATUS_CONFIG: Record<string, { label: string; color: string; text: string }> = {

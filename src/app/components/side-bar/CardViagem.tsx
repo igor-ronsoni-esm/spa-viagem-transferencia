@@ -15,15 +15,15 @@ export function CardViagem({ viagem }: Readonly<Props>) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const status = STATUS_CONFIG[viagem.viagem.chaveStatus] || STATUS_CONFIG.DESCONHECIDO;
+  const status = viagem.viagem.chaveStatus ? STATUS_CONFIG[viagem.viagem.chaveStatus] || STATUS_CONFIG.DESCONHECIDO : STATUS_CONFIG.SEM_STATUS;
 
   const onClick = () => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("codigo-viagem", String(viagem.viagem.execucao.codigo));
+    params.set("viagem", String(viagem.viagem.execucao.codigo));
     router.push(`?${params.toString()}`);
   };
 
-  const isSelected = searchParams.get("codigo-viagem") === String(viagem.viagem.execucao.codigo);
+  const isSelected = searchParams.get("viagem") === String(viagem.viagem.execucao.codigo);
   let tipoViagem = "Extra";
   let cssTipoViagem = "";
   if (isTipoTransferenciaExtra(viagem.viagem.tipoTransferencia)) {

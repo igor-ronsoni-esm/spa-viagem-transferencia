@@ -1,13 +1,26 @@
 "use client";
 
 import { cn } from "@modules/utils/css.util";
+import { Tooltip } from "@mui/material";
 import { CalendarIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useRef } from "react";
 
 export default function SelecaoData() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const inputDataRef = useRef<HTMLInputElement>(null);
 
+  const abrirSeletor = () => {
+    const input = inputDataRef.current;
+    if (!input) return;
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+      input.click();
+    }
+  };
   const dataSelecionada = searchParams.get("data");
 
   const hoje = new Intl.DateTimeFormat("sv-SE", {
@@ -88,23 +101,29 @@ export default function SelecaoData() {
         </div>
       </div>
 
-      <div className="relative group shrink-0">
-        <CalendarIcon className="w-5 h-5 text-gray-300 group-hover:text-primary transition-colors cursor-pointer!" />
+      <Tooltip title="Selecionar data escala" arrow>
+        <button
+          type="button"
+          onClick={abrirSeletor}
+          className="relative group shrink-0 cursor-pointer"
+        >
+          <CalendarIcon className="w-5 h-5 text-gray-300 group-hover:text-primary transition-colors pointer-events-none" />
 
-        <input
-          type="date"
-          aria-label="Selecionar data"
-          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-          value={dataBase}
-          onChange={(e) => {
-            const novaData = e.target.value;
+          <input
+            ref={inputDataRef}
+            type="date"
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full sr-only"
+            value={dataBase}
+            onChange={(e) => {
+              const novaData = e.target.value;
 
-            if (novaData) {
-              handleAlterarDataSelecionada(novaData);
-            }
-          }}
-        />
-      </div>
+              if (novaData) {
+                handleAlterarDataSelecionada(novaData);
+              }
+            }}
+          />
+        </button>
+      </Tooltip>
     </div>
   );
 }

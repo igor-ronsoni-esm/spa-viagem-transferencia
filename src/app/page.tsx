@@ -38,6 +38,7 @@ export default async function PageRoot({ searchParams }: Readonly<Props>) {
 
     redirect(`?${queryParams.toString()}`);
   }
+  
   const { data, viagem, realizadas, prontas, pendentes } = await searchParams;
   const dataValida =
     /^\d{4}-\d{2}-\d{2}$/.test(data!) &&

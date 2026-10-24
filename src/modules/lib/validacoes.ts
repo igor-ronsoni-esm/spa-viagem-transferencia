@@ -1,7 +1,6 @@
 import { OcorrenciaViagem, OcorrenciaViagemOutput, TipoTransferencia, TipoTransferenciaOutput } from "../domain/viagem/schemas/resultado-consulta-viagens.schema";
 
 const OCORRENCIAS_VIAGEM_PENDENTE = new Set<OcorrenciaViagemOutput>([
-  OcorrenciaViagem.AGUARDANDO_AUTORIZACAO,
   OcorrenciaViagem.DISPONIBILIZACAO_VIAGEM_CANCELADA,
   OcorrenciaViagem.PRE_VIAGEM,
   OcorrenciaViagem.RASTREAMENTO_AGUARDANDO_CANCELAMENTO,
@@ -24,6 +23,7 @@ const OCORRENCIAS_VIAGEM_FINALIZADA = new Set<OcorrenciaViagemOutput>([
 ]);
 
 const OCORRENCIAS_VIAGEM_PRONTA = new Set<OcorrenciaViagemOutput>([
+  OcorrenciaViagem.AGUARDANDO_AUTORIZACAO,
   OcorrenciaViagem.INICIO_VIAGEM_CANCELADA,
   OcorrenciaViagem.RASTREAMENTO_AGUARDANDO_AGENDAMENTO,
   OcorrenciaViagem.RASTREAMENTO_AGUARDANDO_INICIO,
@@ -33,10 +33,11 @@ const OCORRENCIAS_VIAGEM_PRONTA = new Set<OcorrenciaViagemOutput>([
   OcorrenciaViagem.RASTREAMENTO_VIAGEM_AGENDADA,
   OcorrenciaViagem.RASTREAMENTO_VIAGEM_CANCELADA,
   OcorrenciaViagem.VIAGEM_DISPONIBILIZADA,
+  OcorrenciaViagem.PROCESSAMENTO_DOCUMENTOS_TERCEIRO,
 ]);
 
 export function isViagemPendente(status: OcorrenciaViagemOutput) {
-  return OCORRENCIAS_VIAGEM_PENDENTE.has(status) || status === null;
+  return OCORRENCIAS_VIAGEM_PENDENTE.has(status) || status === null || status === OcorrenciaViagem.DESCONHECIDO;
 }
 
 export function isViagemIniciada(status: OcorrenciaViagemOutput) {

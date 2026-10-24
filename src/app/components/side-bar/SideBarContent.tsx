@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from "react";
 import SelecaoData from "./SelecaoData";
-import { ViagemOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
+import {
+  EscalaOutput,
+  ViagemOutput,
+} from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
 import ListagemViagens from "./ListagemViagens";
 import {
   ClipboardCheck,
   Clock,
+  Info,
   Play,
   Plus,
-  RefreshCcw,
+  RefreshCw,
   Search,
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
@@ -23,6 +27,8 @@ import { fetchSafe } from "@/src/modules/utils/fetches/fetch-safe";
 import { buscarViagens } from "../../server-actions";
 import SideBarSkeleton from "./SideBarSkeleton";
 import { useRouter, useSearchParams } from "next/navigation";
+import { dataHoraISO, hojeISO } from "@/src/modules/utils/data.util";
+import { Tooltip } from "@mui/material";
 
 enum TabId {
   PENDENTES = "PENDENTES",
@@ -50,14 +56,18 @@ export default function SideBarContent() {
   const [viagens, setViagens] = useState<ViagemOutput[]>([]);
   const [tabSelecionada, setTabSelecionada] = useState<TabId>(TabId.PENDENTES);
   const [pesquisa, setPesquisa] = useState<string>("");
-
+  const [escala, setEscala] = useState<EscalaOutput | null>(null);
   const dataSelecionada = searchParams.get("data");
 
   const viagensFiltradas = viagens.filter((viagem) => {
-    if (tabSelecionada === TabId.PENDENTES) return isViagemPendente(viagem.viagem.chaveStatus);
-    if (tabSelecionada === TabId.RESOLVIDAS) return isViagemPronta(viagem.viagem.chaveStatus);
-    if (tabSelecionada === TabId.INICIADA) return isViagemIniciada(viagem.viagem.chaveStatus);
-    if (tabSelecionada === TabId.FINALIZADA) return isViagemFinalizada(viagem.viagem.chaveStatus);
+    if (tabSelecionada === TabId.PENDENTES)
+      return isViagemPendente(viagem.viagem.chaveStatus);
+    if (tabSelecionada === TabId.RESOLVIDAS)
+      return isViagemPronta(viagem.viagem.chaveStatus);
+    if (tabSelecionada === TabId.INICIADA)
+      return isViagemIniciada(viagem.viagem.chaveStatus);
+    if (tabSelecionada === TabId.FINALIZADA)
+      return isViagemFinalizada(viagem.viagem.chaveStatus);
     return true;
   });
   viagensFiltradas.sort(
@@ -79,44 +89,58 @@ export default function SideBarContent() {
       viagem.linha?.descricao.toString(),
       viagem.viagem.codigo?.toString(),
     ].some((valor) =>
-      String(valor ?? "").toLowerCase().includes(termo),
+      String(valor ?? "")
+        .toLowerCase()
+        .includes(termo),
     );
   });
 
   const fetchViagens = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const resultado = await fetchSafe(() => buscarViagens(dataSelecionada));
-      setViagens(resultado.viagens)
-      handleTotais(resultado.viagens)
-    } 
-    catch (error) {}
-    finally {
-      setLoading(false)
+      setEscala(resultado.escala);
+      setViagens(resultado.viagens);
+      handleTotais(resultado.viagens);
+    } catch (error) {
+      console.error(
+        "[ERROR] Houve um erro ao carregar as informações das viagens. Erro: ",
+        error,
+      );
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   const handleTotais = (resultado: ViagemOutput[]) => {
     const total = resultado.length;
-    const realizadas = resultado.filter((v) => isViagemIniciada(v.viagem.chaveStatus) || isViagemFinalizada(v.viagem.chaveStatus)).length;
-    const prontas = resultado.filter((v) => isViagemPronta(v.viagem.chaveStatus)).length;
-    const pendentes = resultado.filter((v) => isViagemPendente(v.viagem.chaveStatus)).length;
+    const realizadas = resultado.filter(
+      (v) =>
+        isViagemIniciada(v.viagem.chaveStatus) ||
+        isViagemFinalizada(v.viagem.chaveStatus),
+    ).length;
+    const prontas = resultado.filter((v) =>
+      isViagemPronta(v.viagem.chaveStatus),
+    ).length;
+    const pendentes = resultado.filter((v) =>
+      isViagemPendente(v.viagem.chaveStatus),
+    ).length;
 
     const queryParams = new URLSearchParams(searchParams.toString());
     queryParams.set("total", total.toString());
     queryParams.set("realizadas", realizadas.toString());
     queryParams.set("prontas", prontas.toString());
     queryParams.set("pendentes", pendentes.toString());
-    router.replace(`?${queryParams.toString()}`, {scroll: false});
-  }
+    router.replace(`?${queryParams.toString()}`, { scroll: false });
+  };
 
   useEffect(() => {
-    void fetchViagens()
-  }, [dataSelecionada])
-  
+    void fetchViagens();
+  }, [dataSelecionada]);
+
   return (
     <div className="flex flex-col border-r border-gray-100 bg-white shrink-0 w-80 p-2">
-      <div className="border-b border-gray-50 flex flex-col gap-1.5 shrink-0">
+      <div className="border-b border-gray-50 flex flex-col gap-1 shrink-0">
         {/* Seletor de Empresa (habilitado quando o usuário pertence a MATRIZ)
         <CompanySelect
           companies={companies}
@@ -138,14 +162,27 @@ export default function SideBarContent() {
           >
             <Plus className="w-3 h-3" /> NOVA VIAGEM
           </button>
-          <button
-            onClick={fetchViagens}
-            className="p-1.5 rounded-lg bg-gray-50 text-gray-400 hover:text-primary transition-all cursor-pointer"
-          >
-            <RefreshCcw className={cn("w-3 h-3", loading && "animate-spin")} />
-          </button>
+          <div className="flex flex-row items-center gap-1">
+            <Tooltip
+              title={`Escala de até ${escala && dataHoraISO(new Date(escala.dataInicio))} até ${escala && dataHoraISO(new Date(escala.dataFim))}`}
+              arrow
+            >
+              <span className="p-1.5 rounded-lg cursor-pointer bg-gray-50 text-gray-400 hover:text-primary">
+                <Info className="w-4 h-4" />
+              </span>
+            </Tooltip>
+            <Tooltip title="Atualizar viagens" arrow>
+              <button
+                onClick={fetchViagens}
+                className="p-1.5 rounded-lg bg-gray-50 text-gray-400 hover:text-primary transition-all cursor-pointer"
+              >
+                <RefreshCw
+                  className={cn("w-4 h-4", loading && "animate-spin")}
+                />
+              </button>
+            </Tooltip>
+          </div>
         </div>
-
         <div className="relative">
           <input
             type="text"
