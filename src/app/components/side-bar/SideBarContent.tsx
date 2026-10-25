@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import SelecaoData from "./SelecaoData";
 import {
   EscalaOutput,
-  ViagemOutput,
+  ViagemListagemOutput,
 } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
 import ListagemViagens from "./ListagemViagens";
 import {
@@ -27,7 +27,7 @@ import { fetchSafe } from "@/src/modules/utils/fetches/fetch-safe";
 import { buscarViagens } from "../../server-actions";
 import SideBarSkeleton from "./SideBarSkeleton";
 import { useRouter, useSearchParams } from "next/navigation";
-import { dataHoraISO, hojeISO } from "@/src/modules/utils/data.util";
+import { dataHoraISO } from "@/src/modules/utils/data.util";
 import { Tooltip } from "@mui/material";
 
 enum TabId {
@@ -53,7 +53,7 @@ export default function SideBarContent() {
   const router = useRouter();
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [viagens, setViagens] = useState<ViagemOutput[]>([]);
+  const [viagens, setViagens] = useState<ViagemListagemOutput[]>([]);
   const [tabSelecionada, setTabSelecionada] = useState<TabId>(TabId.PENDENTES);
   const [pesquisa, setPesquisa] = useState<string>("");
   const [escala, setEscala] = useState<EscalaOutput | null>(null);
@@ -112,7 +112,7 @@ export default function SideBarContent() {
     }
   };
 
-  const handleTotais = (resultado: ViagemOutput[]) => {
+  const handleTotais = (resultado: ViagemListagemOutput[]) => {
     const total = resultado.length;
     const realizadas = resultado.filter(
       (v) =>

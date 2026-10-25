@@ -4,6 +4,7 @@ import TelaViagem from "./components/tela-viagem/TelaViagem";
 import PainelOperacao from "./components/PainelOperacao";
 import { requireNumber } from "../modules/utils/number.util";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 type Props = {
   searchParams: Promise<{

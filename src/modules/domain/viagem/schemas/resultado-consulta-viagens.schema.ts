@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OcorrenciaSchema, TipoSchema, TipoTransferenciaSchema } from "./viagem.schema";
 
 const empresa = z.object({
   codigo: z.number(),
@@ -12,39 +13,8 @@ const linha = z.object({
   descricao: z.string()
 });
 
-const OcorrenciaSchema = z.enum([
-  "AGUARDANDO_AUTORIZACAO",
-  "COMPARTILHAMENTO_CANCELADO",
-  "DISPONIBILIZACAO_VIAGEM_CANCELADA",
-  "FIM_DE_VIAGEM",
-  "INICIO_VIAGEM_CANCELADA",
-  "LIBERADO_CONTINGENCIA",
-  "PRE_VIAGEM",
-  "RASTREAMENTO_AGUARDANDO_AGENDAMENTO",
-  "RASTREAMENTO_AGUARDANDO_CANCELAMENTO",
-  "RASTREAMENTO_AGUARDANDO_FIM",
-  "RASTREAMENTO_AGUARDANDO_INICIO",
-  "RASTREAMENTO_ERRO_AGENDAMENTO",
-  "RASTREAMENTO_ERRO_CANCELAMENTO",
-  "RASTREAMENTO_ERRO_FIM",
-  "RASTREAMENTO_ERRO_INICIO",
-  "RASTREAMENTO_VIAGEM_AGENDADA",
-  "RASTREAMENTO_VIAGEM_CANCELADA",
-  "RASTREAMENTO_VIAGEM_FINALIZADA",
-  "RASTREAMENTO_VIAGEM_INICIADA",
-  "REJEICAO_AUTORIZACAO",
-  "TROCA_MOTORISTA_FINALIZADA",
-  "TROCA_MOTORISTA_INICIADA",
-  "VIAGEM_CANCELADA",
-  "VIAGEM_COMPARTILHADA",
-  "VIAGEM_DISPONIBILIZADA",
-  "VIAGEM_INICIADA",
-  "PROCESSAMENTO_DOCUMENTOS_TERCEIRO",
-  "DESCONHECIDO"
-]);
 
-const TipoTransferenciaSchema = z.enum(["ESCALA", "EXTRA", "ROTA_ALTERNATIVA"]);
-const TipoSchema = z.enum(["TRANSFERENCIA", "VAZIO"]);
+
 const execucao = z.object({
   codigo: z.number()
 });
@@ -90,11 +60,5 @@ export const ResultadoConsultaViagensSchema = z.object({
 });
 
 export type ResultadoConsultaViagensOutput = z.infer<typeof ResultadoConsultaViagensSchema>;
-export type ViagemOutput = z.infer<typeof ViagemSchema>;
-
-export const OcorrenciaViagem = OcorrenciaSchema.enum;
-export const TipoTransferencia = TipoTransferenciaSchema.enum;
-
-export type OcorrenciaViagemOutput = z.infer<typeof OcorrenciaSchema>;
-export type TipoTransferenciaOutput = z.infer<typeof TipoTransferenciaSchema>;
+export type ViagemListagemOutput = z.infer<typeof ViagemSchema>;
 export type EscalaOutput = z.infer<typeof EscalaSchema>;

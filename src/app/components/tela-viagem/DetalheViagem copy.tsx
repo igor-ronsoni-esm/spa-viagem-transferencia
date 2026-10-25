@@ -1412,7 +1412,7 @@ startxref
   return (
     <div className="flex-1 flex flex-col h-full bg-white relative">
       {/* Header */}
-      <div className="bg-primary p-3 text-white flex justify-between items-center shrink-0">
+      {/* <div className="bg-primary p-3 text-white flex justify-between items-center shrink-0">
         <div className="flex items-center gap-2">
           <Clipboard className="w-5 h-5" />
           <div>
@@ -1438,7 +1438,7 @@ startxref
         >
           <X className="w-5 h-5" />
         </button>
-      </div>
+      </div> */}
 
       {/* Action Buttons & Tabs Header */}
       <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex flex-col gap-2 shrink-0">

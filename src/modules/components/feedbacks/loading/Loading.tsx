@@ -23,10 +23,6 @@ export const Loading = ({
           thickness={2}
           className={`absolute text-primary! ${!progress ? "slow-spin-mui" : ""}`}
         />
-        {/* Precisa viver em /static: das pastas de assets, é a única que o matcher do
-            middleware de auth (src/proxy.ts) deixa passar. Este Loading roda na tela de
-            login, com o usuário ainda não autenticado — de qualquer outro caminho o
-            NextAuth responderia com redirect para /login em vez do arquivo. */}
         <img
           src="/static/logo.gif"
           alt="Logo ESM"

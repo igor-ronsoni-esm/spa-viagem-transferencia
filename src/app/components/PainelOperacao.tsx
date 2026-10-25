@@ -24,9 +24,9 @@ export default function PainelOperacao({ dataSelecionada, total, realizadas, pro
       key="dashboard-summary"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12"
+      className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 min-h-0"
     >
-      <div className="w-full max-w-3xl space-y-8">
+      <div className="flex flex-col w-full max-w-3xl space-y-8 overflow-auto">
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-black text-gray-900 tracking-tight">
             Painel de Operação

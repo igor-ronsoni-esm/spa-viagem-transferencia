@@ -1,14 +1,14 @@
 "use client";
 
 import { Clock, ChevronRight } from "lucide-react";
-import { ViagemOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
+import { ViagemListagemOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
 import { STATUS_CONFIG } from "../../constants";
 import { cn } from "@modules/utils/css.util";
 import { useRouter, useSearchParams } from "next/navigation";
 import { isTipoTransferenciaEscala, isTipoTransferenciaExtra, isTipoTransferenciaRotaAlternativa } from "@/src/modules/lib/validacoes";
 
 type Props = {
-  viagem: ViagemOutput;
+  viagem: ViagemListagemOutput;
 };
 
 export function CardViagem({ viagem }: Readonly<Props>) {
@@ -16,7 +16,7 @@ export function CardViagem({ viagem }: Readonly<Props>) {
   const searchParams = useSearchParams();
 
   const status = viagem.viagem.chaveStatus ? STATUS_CONFIG[viagem.viagem.chaveStatus] || STATUS_CONFIG.DESCONHECIDO : STATUS_CONFIG.SEM_STATUS;
-
+  
   const onClick = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("viagem", String(viagem.viagem.execucao.codigo));
@@ -24,6 +24,8 @@ export function CardViagem({ viagem }: Readonly<Props>) {
   };
 
   const isSelected = searchParams.get("viagem") === String(viagem.viagem.execucao.codigo);
+  const podeSelecionar = searchParams.get("modoEdicao") === "false" || searchParams.get("modoEdicao") === null;
+
   let tipoViagem = "Extra";
   let cssTipoViagem = "";
   if (isTipoTransferenciaExtra(viagem.viagem.tipoTransferencia)) {
@@ -39,12 +41,13 @@ export function CardViagem({ viagem }: Readonly<Props>) {
 
   return (
     <div
-      onClick={onClick}
+      onClick={podeSelecionar ? onClick : undefined}
       className={cn(
-        "flex flex-col bg-white rounded-xl shadow-sm border p-3 transition-all cursor-pointer group",
+        "flex flex-col bg-white rounded-xl shadow-sm border p-3 transition-all cursor-pointer group select-none",
         isSelected
           ? "border-primary ring-1 ring-primary/10 shadow-md shadow-primary/5"
           : "border-gray-100 hover:border-primary/30",
+        !podeSelecionar && !isSelected && "opacity-50 cursor-not-allowed",
       )}
     >
       <div className="flex flex-row justify-between items-center gap-1">
