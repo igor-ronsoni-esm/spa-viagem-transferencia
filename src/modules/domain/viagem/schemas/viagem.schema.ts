@@ -41,6 +41,31 @@ export const OcorrenciaSchema = z.enum([
   "DESCONHECIDO"
 ]);
 
+const VeiculoTipoSchema = z.enum(["P", "A", "D", "T"]).transform((tipo) => {
+  const tipos = {
+    P: "PRINCIPAL",
+    A: "AGREGADO",
+    D: "DIARISTA",
+    T: "TERCEIRO",
+    DESCONHECIDO: "DESCONHECIDO",
+  } as const;
+
+  return tipos[tipo] ?? "DESCONHECIDO";
+});
+
+const MotoristaTipoSchemaEnum = z.enum(["TITULAR", "CARONA", "RESERVA"]);
+
+const MotoristaTipoSchema = z.enum(["T", "C", "R"]).transform((tipo) => {
+  const tipos = {
+    T: "TITULAR",
+    C: "CARONA",
+    R: "RESERVA",
+    DESCONHECIDO: "DESCONHECIDO",
+  } as const;
+
+  return tipos[tipo] ?? "DESCONHECIDO";
+});
+
 const TipoViagemSchema = z
   .enum(["T", "V"])
   .transform((tipo) => {
@@ -108,7 +133,7 @@ const VeiculoSchema = z.object({
   codigo: z.number(),
   placa: z.string(),
   descricao: z.string(),
-  tipo: z.string(),
+  tipo: VeiculoTipoSchema,
 });
 
 const VeiculoViagemSchema = z.object({
@@ -119,7 +144,7 @@ const VeiculoViagemSchema = z.object({
 
 const MotoristaViagemSchema = z.object({
   codigo: z.number(),
-  tipo: z.string(),
+  tipo: MotoristaTipoSchema,
   funcionario: z.object({
     codigo: z.number(),
     nome: z.string(),
@@ -171,7 +196,6 @@ const TrocaMotoristaSchema = z.object({
   })
 })
 
-
 const DescarregamentoSchema = z.object({
   codigo: z.number(),
   situacao: z.string(),
@@ -188,6 +212,43 @@ export const ExtraTipoSchema = z.union([
   z.literal(6),
 ]);
 
+const OcorrenciaViagemSchema = z.object({
+  codigo: z.number(),
+  chave: OcorrenciaSchema,
+  vigente: z.boolean(),
+  dataLancamento: z.string(),
+});
+
+const TipoDocumentoFiscalSchemaEnum = z.enum([
+  "CIOT",
+  "VPO",
+  "MDFE"
+])
+
+const StatusDocumentoFiscalSchemaEnum = z.enum([
+  "AGUARDANDO_AUTORIZACAO",
+  "AGUARDANDO_CANCELAMENTO",
+  "AGUARDANDO_ENCERRAMENTO",
+  "AUTORIZADO",
+  "CANCELADO",
+  "ENCERRADO",
+  "REJEITADO",
+  "PENDENTE",
+  "COMPRADO",
+  "NAO_ELEGIVEL",
+  "DESCONHECIDO",
+  "ERRO"
+])
+
+const DocumentoFiscalSchema = z.object({
+  codigo: z.number(),
+  tipo: TipoDocumentoFiscalSchemaEnum,
+  numero: z.string().nullable(),
+  dataGeracao: z.string(),
+  dataRetorno: z.string().nullable(),
+  status: StatusDocumentoFiscalSchemaEnum.nullable().default("DESCONHECIDO"),
+  motivoRejeicao: z.string().nullable()
+});
 
 export const ViagemSchema = z.object({
   codigo: z.number().nullable(),
@@ -207,13 +268,20 @@ export const ViagemSchema = z.object({
   lacres: z.array(LacreSchema),
   descarregamentos: z.array(DescarregamentoSchema),
   documentos: z.array(DocumentoSchema),
+  ocorrencias: z.array(OcorrenciaViagemSchema),
+  documentosFiscais: z.array(DocumentoFiscalSchema),
 });
 
-export const OcorrenciaViagem = OcorrenciaSchema.enum;;
+export const OcorrenciaViagemEnum = OcorrenciaSchema.enum;;
 export const TipoTransferenciaEnum = TipoTransferenciaSchema.enum;
 export const TipoViagemEnum = TipoSchema.enum;
+export const MotoristaTipoEnum = MotoristaTipoSchemaEnum.enum;
+export const StatusDocumentoFiscalEnum = StatusDocumentoFiscalSchemaEnum.enum;
+export const TipoDocumentoFiscalEnum = TipoDocumentoFiscalSchemaEnum.enum;
 
 export type TipoTransferenciaOutput = z.infer<typeof TipoTransferenciaSchema>;
 export type TipoViagemOutput = z.infer<typeof TipoSchema>;
 export type ViagemOutput = z.infer<typeof ViagemSchema>;
-export type OcorrenciaViagemOutput = z.infer<typeof OcorrenciaSchema>;
+export type OcorrenciaViagemEnumOutput = z.infer<typeof OcorrenciaSchema>;
+export type OcorrenciaViagemOutput = z.infer<typeof OcorrenciaViagemSchema>;
+export type DocumentoFiscalSchemaOutput = z.infer<typeof DocumentoFiscalSchema>;

@@ -164,7 +164,7 @@ export default function SideBarContent() {
           </button>
           <div className="flex flex-row items-center gap-1">
             <Tooltip
-              title={`Escala de até ${escala && dataHoraISO(new Date(escala.dataInicio))} até ${escala && dataHoraISO(new Date(escala.dataFim))}`}
+              title={`Escala de ${escala && dataHoraISO(new Date(escala.dataInicio))} até ${escala && dataHoraISO(new Date(escala.dataFim))}`}
               arrow
             >
               <span className="p-1.5 rounded-lg cursor-pointer bg-gray-50 text-gray-400 hover:text-primary">

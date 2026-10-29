@@ -15,15 +15,15 @@ import {
   FiscalDocument,
   ControleCarga,
   Empresa,
-} from "../../types";
+} from "../types";
 import {
   STATUS_CONFIG,
   TRIP_TYPES,
   SECTION_TYPES,
   COLORS,
   FISCAL_STATUS_CONFIG,
-} from "../../constants";
-import { cn } from "@/src/lib/utils";
+} from "../constants";
+import { cn } from "../lib/utils";
 import {
   X,
   Save,
@@ -60,6 +60,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { logisticsService } from "../services/logisticsService";
 
 interface TripDetailProps {
   trip: Trip;
@@ -73,12 +74,12 @@ interface TripDetailProps {
 }
 
 const getNormalizeStatus = (status: string) => {
-  if (!status) return "PENDENTE";
+  if (!status) return 'PENDENTE';
   const s = status.toUpperCase();
-  if (s.includes("AUTORIZADO") || s.includes("SUCESSO")) return "AUTORIZADO";
-  if (s.includes("REJEITADO") || s.includes("REJEITADA")) return "REJEITADO";
-  if (s.includes("CANCELADO") || s.includes("CANCELADA")) return "CANCELADO";
-  return "PENDENTE";
+  if (s.includes('AUTORIZADO') || s.includes('SUCESSO')) return 'AUTORIZADO';
+  if (s.includes('REJEITADO') || s.includes('REJEITADA')) return 'REJEITADO';
+  if (s.includes('CANCELADO') || s.includes('CANCELADA')) return 'CANCELADO';
+  return 'PENDENTE';
 };
 
 const formatDateTime = (dateStr?: string) => {
@@ -86,17 +87,27 @@ const formatDateTime = (dateStr?: string) => {
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return "-";
-    return d.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return d.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   } catch {
     return "-";
   }
 };
+
+const AVAILABLE_TRECHOS = [
+  { codigo: 'TR-1001', origem: 'São Paulo (SP)', destino: 'Campinas (SP)' },
+  { codigo: 'TR-1002', origem: 'Campinas (SP)', destino: 'Ribeirão Preto (SP)' },
+  { codigo: 'TR-1003', origem: 'São Paulo (SP)', destino: 'Curitiba (PR)' },
+  { codigo: 'TR-1004', origem: 'Curitiba (PR)', destino: 'Florianópolis (SC)' },
+  { codigo: 'TR-1005', origem: 'Porto Alegre (RS)', destino: 'Chapecó (SC)' },
+  { codigo: 'TR-1006', origem: 'Rio de Janeiro (RJ)', destino: 'Belo Horizonte (MG)' },
+  { codigo: 'TR-1007', origem: 'São Paulo (SP)', destino: 'Belo Horizonte (MG)' },
+];
 
 export function TripDetail({
   trip: initialTrip,
@@ -116,6 +127,7 @@ export function TripDetail({
   >("content");
   const [driverSearch, setDriverSearch] = useState("");
   const [vehicleSearch, setVehicleSearch] = useState("");
+  const [showTrackingInfo, setShowTrackingInfo] = useState(false);
 
   // Modals
   const [isLineModalOpen, setIsLineModalOpen] = useState(false);
@@ -123,18 +135,16 @@ export function TripDetail({
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
-
+  
   // Fiscal Documents states
   const [loadingText, setLoadingText] = useState("Processando...");
-  const [selectedDocForObs, setSelectedDocForObs] =
-    useState<FiscalDocument | null>(null);
+  const [selectedDocForObs, setSelectedDocForObs] = useState<FiscalDocument | null>(null);
   const [isFillCiotModalOpen, setIsFillCiotModalOpen] = useState(false);
   const [ciotNumero, setCiotNumero] = useState("");
   const [ciotCodigoVerificador, setCiotCodigoVerificador] = useState("");
   const [ciotValorFrete, setCiotValorFrete] = useState("");
   const [ciotValorPedagio, setCiotValorPedagio] = useState("");
-  const [ciotStatus, setCiotStatus] =
-    useState<FiscalDocument["status"]>("AUTORIZADO");
+  const [ciotStatus, setCiotStatus] = useState<FiscalDocument["status"]>("AUTORIZADO");
   const [ciotObservacao, setCiotObservacao] = useState("");
   const [ciotMotivoRejeicao, setCiotMotivoRejeicao] = useState("");
   const [isCiotSuccessModalOpen, setIsCiotSuccessModalOpen] = useState(false);
@@ -150,9 +160,9 @@ export function TripDetail({
   const [expandedControles, setExpandedControles] = useState<Set<string>>(
     new Set(),
   );
-  const [expandedImportControles, setExpandedImportControles] = useState<
-    Set<string>
-  >(new Set());
+  const [expandedImportControles, setExpandedImportControles] = useState<Set<string>>(
+    new Set(),
+  );
   const [markedControleIds, setMarkedControleIds] = useState<Set<string>>(
     new Set(),
   );
@@ -170,18 +180,14 @@ export function TripDetail({
   }, [docFeedback]);
 
   // Sync trip state when initialTrip changes (master change)
-  const [isEditing, setIsEditing] = useState<boolean>(
-    initialTrip.codigo === 0 && !initialTrip.isPreGenerated,
-  );
+  const [isEditing, setIsEditing] = useState<boolean>(initialTrip.codigo === 0 && !initialTrip.isPreGenerated);
   const [isSaveSuccessModalOpen, setIsSaveSuccessModalOpen] = useState(false);
 
   useEffect(() => {
-    const d = initialTrip.dataViagem
-      ? initialTrip.dataViagem.split("T")[0]
-      : new Date().toISOString().split("T")[0];
+    const d = initialTrip.dataViagem ? initialTrip.dataViagem.split('T')[0] : new Date().toISOString().split('T')[0];
     setTrip({
       ...initialTrip,
-      dataViagem: d,
+      dataViagem: d
     });
     setIsEditing(initialTrip.codigo === 0 && !initialTrip.isPreGenerated);
   }, [initialTrip]);
@@ -253,17 +259,13 @@ export function TripDetail({
   // Ação 1: Adicionar todos os documentos que pertencem à configuração da linha
   const handleAddAllLineDocuments = async () => {
     if (!canEditFields) {
-      alert(
-        "Para adicionar documentos, clique primeiro no botão 'EDITAR VIAGEM'.",
-      );
+      alert("Para adicionar documentos, clique primeiro no botão 'EDITAR VIAGEM'.");
       return;
     }
     try {
       setLoadingText("Buscando documentos da configuração da linha...");
       setLoading(true);
-      const allControles = await logisticsService.getAvailableControles(
-        selectedCompany?.codigo || trip.empresaCodigo,
-      );
+      const allControles = await logisticsService.getAvailableControles(selectedCompany?.codigo || trip.empresaCodigo);
 
       let origSigla = trip.agenciaOrigemSigla;
       let destSigla = trip.agenciaDestinoSigla;
@@ -271,8 +273,7 @@ export function TripDetail({
         const parts = trip.nomeLinha.split("x").map((p) => p.trim());
         if (parts.length === 2) {
           if (!origSigla) origSigla = parts[0].split(" ")[0].trim();
-          if (!destSigla)
-            destSigla = parts[1].split(" ")[0].split("-")[0].trim();
+          if (!destSigla) destSigla = parts[1].split(" ")[0].split("-")[0].trim();
         }
       }
 
@@ -285,16 +286,11 @@ export function TripDetail({
 
       // Se nenhum controle for encontrado na empresa para esta rota específica, gerar amostra realista
       if (matchingControles.length === 0 && origSigla && destSigla) {
-        const generated = await logisticsService.addSampleControleForRoute(
-          origSigla,
-          destSigla,
-        );
+        const generated = await logisticsService.addSampleControleForRoute(origSigla, destSigla);
         matchingControles = [generated];
       }
 
-      const currentChaves = new Set(
-        (trip.controlesCarga || []).map((c) => c.chave),
-      );
+      const currentChaves = new Set((trip.controlesCarga || []).map((c) => c.chave));
       const currentIds = new Set((trip.controlesCarga || []).map((c) => c.id));
       const newControles = matchingControles.filter(
         (c) => !currentChaves.has(c.chave) && !currentIds.has(c.id),
@@ -316,16 +312,9 @@ export function TripDetail({
       }
 
       const newCtes = newControles.flatMap((c) => c.ctes || []);
-      const updatedControles = [
-        ...(trip.controlesCarga || []),
-        ...newControles,
-      ];
-      const currentCteChaves = new Set(
-        (trip.ctes || []).map((cte) => cte.chave),
-      );
-      const actuallyNewCtes = newCtes.filter(
-        (cte) => !currentCteChaves.has(cte.chave),
-      );
+      const updatedControles = [...(trip.controlesCarga || []), ...newControles];
+      const currentCteChaves = new Set((trip.ctes || []).map((cte) => cte.chave));
+      const actuallyNewCtes = newCtes.filter((cte) => !currentCteChaves.has(cte.chave));
       const updatedCtes = [...(trip.ctes || []), ...actuallyNewCtes];
 
       setTrip((prev) => ({
@@ -360,17 +349,13 @@ export function TripDetail({
   // Ação 2: Abrir modal para escolher documentos
   const openImportModal = async () => {
     if (!canEditFields) {
-      alert(
-        "Para escolher documentos, clique primeiro no botão 'EDITAR VIAGEM'.",
-      );
+      alert("Para escolher documentos, clique primeiro no botão 'EDITAR VIAGEM'.");
       return;
     }
     try {
       setLoadingText("Carregando documentos da empresa...");
       setLoading(true);
-      const controles = await logisticsService.getAvailableControles(
-        selectedCompany?.codigo || trip.empresaCodigo,
-      );
+      const controles = await logisticsService.getAvailableControles(selectedCompany?.codigo || trip.empresaCodigo);
       setAvailableControles(controles);
       setImportFilter("line"); // Inicia mostrando apenas da configuração da linha
       setSelectedImportIds(new Set());
@@ -389,9 +374,7 @@ export function TripDetail({
     const toImport = availableControles.filter(
       (c) => selectedImportIds.has(c.id) || selectedImportIds.has(c.chave),
     );
-    const currentChaves = new Set(
-      (trip.controlesCarga || []).map((c) => c.chave),
-    );
+    const currentChaves = new Set((trip.controlesCarga || []).map((c) => c.chave));
     const currentIds = new Set((trip.controlesCarga || []).map((c) => c.id));
     const actuallyNew = toImport.filter(
       (c) => !currentChaves.has(c.chave) && !currentIds.has(c.id),
@@ -410,9 +393,7 @@ export function TripDetail({
     const newCtes = actuallyNew.flatMap((c) => c.ctes || []);
     const updatedControles = [...(trip.controlesCarga || []), ...actuallyNew];
     const currentCteChaves = new Set((trip.ctes || []).map((cte) => cte.chave));
-    const actuallyNewCtes = newCtes.filter(
-      (cte) => !currentCteChaves.has(cte.chave),
-    );
+    const actuallyNewCtes = newCtes.filter((cte) => !currentCteChaves.has(cte.chave));
     const updatedCtes = [...(trip.ctes || []), ...actuallyNewCtes];
 
     setTrip((prev) => ({
@@ -444,9 +425,7 @@ export function TripDetail({
   // Ação 3: Remover documentos marcados da viagem
   const handleRemoveMarkedControles = async () => {
     if (!canEditFields) {
-      alert(
-        "Para remover documentos, clique primeiro no botão 'EDITAR VIAGEM'.",
-      );
+      alert("Para remover documentos, clique primeiro no botão 'EDITAR VIAGEM'.");
       return;
     }
     if (markedControleIds.size === 0) return;
@@ -485,8 +464,7 @@ export function TripDetail({
     if (!canEditFields) return;
 
     const remainingControles = (trip.controlesCarga || []).filter(
-      (c) =>
-        (cId ? c.id !== cId : true) && (cChave ? c.chave !== cChave : true),
+      (c) => (cId ? c.id !== cId : true) && (cChave ? c.chave !== cChave : true),
     );
     const remainingCtes = remainingControles.flatMap((c) => c.ctes || []);
 
@@ -545,9 +523,7 @@ export function TripDetail({
     if (!canEditFields || !controleKey) return;
     try {
       setLoading(true);
-      const controle = await logisticsService.getControleByChave(
-        controleKey.trim(),
-      );
+      const controle = await logisticsService.getControleByChave(controleKey.trim());
       if (controle) {
         if (
           (trip.controlesCarga || []).find((c) => c.chave === controle.chave)
@@ -627,9 +603,7 @@ export function TripDetail({
       const term = importModalSearch.toLowerCase();
       const matchesChave = (c.chave || "").toLowerCase().includes(term);
       const matchesOrigem = (c.origemSigla || "").toLowerCase().includes(term);
-      const matchesDestino = (c.destinoSigla || "")
-        .toLowerCase()
-        .includes(term);
+      const matchesDestino = (c.destinoSigla || "").toLowerCase().includes(term);
       const matchesCtes = (c.ctes || []).some(
         (cte) =>
           (cte.chave || "").toLowerCase().includes(term) ||
@@ -645,9 +619,7 @@ export function TripDetail({
   });
 
   const toggleSelectAllFiltered = () => {
-    const currentChaves = new Set(
-      (trip.controlesCarga || []).map((c) => c.chave),
-    );
+    const currentChaves = new Set((trip.controlesCarga || []).map((c) => c.chave));
     const currentIds = new Set((trip.controlesCarga || []).map((c) => c.id));
     const selectable = filteredImportControles.filter(
       (c) => !currentChaves.has(c.chave) && !currentIds.has(c.id),
@@ -684,15 +656,11 @@ export function TripDetail({
   // Ação: Reenviar Solicitação de Documentação
   const handleResendFiscalDocumentation = async () => {
     if (!canEditFields) {
-      alert(
-        "Para reenviar solicitação de documentos, clique primeiro no botão 'EDITAR VIAGEM'.",
-      );
+      alert("Para reenviar solicitação de documentos, clique primeiro no botão 'EDITAR VIAGEM'.");
       return;
     }
     if (trip.documentosFiscais.length === 0) {
-      alert(
-        "Não há documentos fiscais cadastrados nesta viagem para reenviar solicitação.",
-      );
+      alert("Não há documentos fiscais cadastrados nesta viagem para reenviar solicitação.");
       return;
     }
     try {
@@ -703,11 +671,11 @@ export function TripDetail({
       const nowIso = new Date().toISOString();
       const updatedDocs = trip.documentosFiscais.map((doc) => ({
         ...doc,
-        status: "AUTORIZADO" as const,
+        status: 'AUTORIZADO' as const,
         dataGeracao: nowIso,
         dataAtualizacao: nowIso,
         dataRetorno: nowIso,
-        observacao: `Solicitação reenviada e autorizada com sucesso em ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR")}.`,
+        observacao: `Solicitação reenviada e autorizada com sucesso em ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}.`,
         motivosRejeicao: [],
       }));
 
@@ -728,9 +696,7 @@ export function TripDetail({
         documentosFiscais: updatedDocs,
         ocorrencias: newOccurrences,
       });
-      alert(
-        `Solicitação de documentação fiscal reenviada com sucesso para a viagem!`,
-      );
+      alert(`Solicitação de documentação fiscal reenviada com sucesso para a viagem!`);
     } catch (e) {
       console.error(e);
       alert("Erro ao reenviar solicitação de documentação.");
@@ -741,55 +707,42 @@ export function TripDetail({
 
   const handleCancelSingleDoc = async (docToCancel: FiscalDocument) => {
     if (!canEditFields) {
-      alert(
-        "Para cancelar documentos, clique primeiro no botão 'EDITAR VIAGEM'.",
-      );
+      alert("Para cancelar documentos, clique primeiro no botão 'EDITAR VIAGEM'.");
       return;
     }
-    if (docToCancel.tipo === "CIOT") {
+    if (docToCancel.tipo === 'CIOT') {
       const hasCancelledMdfe = trip.documentosFiscais.some(
-        (d) =>
-          d.tipo === "MDF-E" &&
-          (d.status === "CANCELADO" || d.status === "CANCELADA"),
+        d => d.tipo === 'MDF-E' && (d.status === 'CANCELADO' || d.status === 'CANCELADA')
       );
       if (!hasCancelledMdfe) {
-        alert(
-          "O cancelamento do CIOT somente é permitido se o status do MDF-e estiver CANCELADO.",
-        );
+        alert("O cancelamento do CIOT somente é permitido se o status do MDF-e estiver CANCELADO.");
         return;
       }
     }
-    if (
-      !confirm(
-        `Deseja realmente solicitar o cancelamento deste ${docToCancel.tipo}?`,
-      )
-    )
-      return;
+    if (!confirm(`Deseja realmente solicitar o cancelamento deste ${docToCancel.tipo}?`)) return;
 
     try {
       setLoading(true);
       const nowIso = new Date().toISOString();
-      const updatedDocs = trip.documentosFiscais.map((d) => {
+      const updatedDocs = trip.documentosFiscais.map(d => {
         if (d.numero === docToCancel.numero && d.tipo === docToCancel.tipo) {
           return {
             ...d,
-            status: "CANCELADO" as const,
+            status: 'CANCELADO' as const,
             dataAtualizacao: nowIso,
             dataRetorno: nowIso,
-            observacao: `Documento cancelado pelo usuário em ${new Date().toLocaleDateString("pt-BR")}.`,
-            motivosRejeicao: [],
+            observacao: `Documento cancelado pelo usuário em ${new Date().toLocaleDateString('pt-BR')}.`,
+            motivosRejeicao: []
           };
         }
         return d;
       });
 
-      setTrip((prev) => ({
+      setTrip(prev => ({
         ...prev,
         documentosFiscais: updatedDocs,
       }));
-      await logisticsService.updateTrip(trip.id, {
-        documentosFiscais: updatedDocs,
-      });
+      await logisticsService.updateTrip(trip.id, { documentosFiscais: updatedDocs });
       alert(`${docToCancel.tipo} cancelado com sucesso.`);
     } catch (e) {
       console.error(e);
@@ -804,35 +757,30 @@ export function TripDetail({
       setLoadingText("Consultando status na SEFAZ/ANTT...");
       setLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 900));
-
-      const isPending =
-        docToConsult.status === "PENDENTE" ||
-        docToConsult.status === "AGUARDANDO RETORNO" ||
-        docToConsult.status === "AGUARDANDO AUTORIZACAO";
+      
+      const isPending = docToConsult.status === 'PENDENTE' || docToConsult.status === 'AGUARDANDO RETORNO' || docToConsult.status === 'AGUARDANDO AUTORIZACAO';
       let nextStatus = docToConsult.status;
       let nextObs = docToConsult.observacao;
       let nextReasons = docToConsult.motivosRejeicao || [];
-
+      
       if (isPending) {
         const isSuccess = Math.random() > 0.2;
         if (isSuccess) {
-          nextStatus = "AUTORIZADO";
+          nextStatus = 'AUTORIZADO';
           nextObs = `${docToConsult.tipo} autorizado com sucesso após consulta SEFAZ.`;
           nextReasons = [];
         } else {
-          nextStatus = "REJEITADO";
-          nextObs = "Rejeitado pelo órgão regulador após consulta.";
-          nextReasons = ["Inconsistência nos dados cadastrais informados"];
+          nextStatus = 'REJEITADO';
+          nextObs = 'Rejeitado pelo órgão regulador após consulta.';
+          nextReasons = ['Inconsistência nos dados cadastrais informados'];
         }
       } else {
-        alert(
-          `Consulta finalizada! O documento ${docToConsult.tipo} nº ${docToConsult.numero || ""} está com a situação ${docToConsult.status}.`,
-        );
+        alert(`Consulta finalizada! O documento ${docToConsult.tipo} nº ${docToConsult.numero || ''} está com a situação ${docToConsult.status}.`);
         return;
       }
-
+      
       const nowIso = new Date().toISOString();
-      const updatedDocs = trip.documentosFiscais.map((d) => {
+      const updatedDocs = trip.documentosFiscais.map(d => {
         if (d.numero === docToConsult.numero && d.tipo === docToConsult.tipo) {
           return {
             ...d,
@@ -845,17 +793,13 @@ export function TripDetail({
         }
         return d;
       });
-
-      setTrip((prev) => ({
+      
+      setTrip(prev => ({
         ...prev,
         documentosFiscais: updatedDocs,
       }));
-      await logisticsService.updateTrip(trip.id, {
-        documentosFiscais: updatedDocs,
-      });
-      alert(
-        `Consulta finalizada! Situação atualizada do ${docToConsult.tipo}: ${nextStatus}`,
-      );
+      await logisticsService.updateTrip(trip.id, { documentosFiscais: updatedDocs });
+      alert(`Consulta finalizada! Situação atualizada do ${docToConsult.tipo}: ${nextStatus}`);
     } catch (e) {
       console.error(e);
       alert("Erro ao consultar situação do documento.");
@@ -866,9 +810,7 @@ export function TripDetail({
 
   const handleResendSingleAuth = async (docToResend: FiscalDocument) => {
     if (!canEditFields) {
-      alert(
-        "Para reenviar autorização, clique primeiro no botão 'EDITAR VIAGEM'.",
-      );
+      alert("Para reenviar autorização, clique primeiro no botão 'EDITAR VIAGEM'.");
       return;
     }
     try {
@@ -877,16 +819,16 @@ export function TripDetail({
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const nowIso = new Date().toISOString();
-      const updatedDocs = trip.documentosFiscais.map((d) => {
+      const updatedDocs = trip.documentosFiscais.map(d => {
         if (d.numero === docToResend.numero && d.tipo === docToResend.tipo) {
           return {
             ...d,
-            status: "AUTORIZADO" as const,
+            status: 'AUTORIZADO' as const,
             dataGeracao: nowIso,
             dataAtualizacao: nowIso,
             dataRetorno: nowIso,
-            observacao: `Autorização reenviada e aprovada com sucesso em ${new Date().toLocaleDateString("pt-BR")}.`,
-            motivosRejeicao: [],
+            observacao: `Autorização reenviada e aprovada com sucesso em ${new Date().toLocaleDateString('pt-BR')}.`,
+            motivosRejeicao: []
           };
         }
         return d;
@@ -895,12 +837,12 @@ export function TripDetail({
       const newOccurrences = [
         ...trip.ocorrencias,
         {
-          tipo: `AUTORIZAÇÃO FISCAL REENVIADA (${docToResend.tipo} nº ${docToResend.numero || ""})`,
+          tipo: `AUTORIZAÇÃO FISCAL REENVIADA (${docToResend.tipo} nº ${docToResend.numero || ''})`,
           dataGeracao: nowIso,
         },
       ];
 
-      setTrip((prev) => ({
+      setTrip(prev => ({
         ...prev,
         documentosFiscais: updatedDocs,
         ocorrencias: newOccurrences,
@@ -909,9 +851,7 @@ export function TripDetail({
         documentosFiscais: updatedDocs,
         ocorrencias: newOccurrences,
       });
-      alert(
-        `Autorização reenviada com sucesso para o documento ${docToResend.tipo}!`,
-      );
+      alert(`Autorização reenviada com sucesso para o documento ${docToResend.tipo}!`);
     } catch (e) {
       console.error(e);
       alert("Erro ao reenviar autorização.");
@@ -920,12 +860,9 @@ export function TripDetail({
     }
   };
 
-  const handleCreateDocument = async (
-    tipo: "CIOT" | "MDF-E",
-    isRejectedCase: boolean = false,
-  ) => {
+  const handleCreateDocument = async (tipo: 'CIOT' | 'MDF-E', isRejectedCase: boolean = false) => {
     try {
-      if (tipo === "MDF-E") {
+      if (tipo === 'MDF-E') {
         setLoadingText("gerando mdfe...");
       } else {
         setLoadingText("Processando...");
@@ -934,31 +871,28 @@ export function TripDetail({
       // Artificial delay to make loading with "gerando mdfe..." fully visible and immersive
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      const responseDoc =
-        tipo === "CIOT"
-          ? await logisticsService.gerarCIOT(trip.id)
-          : await logisticsService.gerarMDFE(trip.id);
-
+      const responseDoc = tipo === 'CIOT' 
+        ? await logisticsService.gerarCIOT(trip.id)
+        : await logisticsService.gerarMDFE(trip.id);
+      
       // Enrich doc with standard attributes
       const numero = Math.floor(100000 + Math.random() * 900000).toString();
-      const reasons = isRejectedCase
-        ? [
-            `Rejeição SEFAZ: Código de barramento inválido de placa`,
-            `Divergência cadastral cadastrada no RNTRC do transportador: ${trip.motoristas[0]?.nome || "Sem Motorista"}`,
-          ]
-        : [];
+      const reasons = isRejectedCase ? [
+        `Rejeição SEFAZ: Código de barramento inválido de placa`,
+        `Divergência cadastral cadastrada no RNTRC do transportador: ${trip.motoristas[0]?.nome || 'Sem Motorista'}`
+      ] : [];
 
       const enrichedDoc: FiscalDocument = {
         tipo,
-        status: isRejectedCase ? "REJEITADO" : "AUTORIZADO",
+        status: isRejectedCase ? 'REJEITADO' : 'AUTORIZADO',
         numero,
         dataGeracao: new Date().toISOString(),
         dataAtualizacao: new Date().toISOString(),
         dataRetorno: new Date().toISOString(),
-        observacao: isRejectedCase
-          ? "Rejeição na transmissão de lote SEFAZ."
+        observacao: isRejectedCase 
+          ? 'Rejeição na transmissão de lote SEFAZ.' 
           : `${tipo} emitido e autorizado com sucesso.`,
-        motivosRejeicao: reasons,
+        motivosRejeicao: reasons
       };
 
       const updatedDocs = [...trip.documentosFiscais, enrichedDoc];
@@ -967,10 +901,8 @@ export function TripDetail({
         ...prev,
         documentosFiscais: updatedDocs,
       }));
-      await logisticsService.updateTrip(trip.id, {
-        documentosFiscais: updatedDocs,
-      });
-
+      await logisticsService.updateTrip(trip.id, { documentosFiscais: updatedDocs });
+      
       alert(`${tipo} gerado com sucesso! Número do Documento: ${numero}`);
     } catch (e) {
       console.error(e);
@@ -982,16 +914,11 @@ export function TripDetail({
 
   const handlePrintMdfe = (doc: FiscalDocument) => {
     const accessKey = `35260524193512${doc.numero}000122580010000001231585931892`;
-    const lineInfo = trip.linha
-      ? `${trip.linha.codigo} - ${trip.linha.nome}`
+    const lineInfo = trip.linha ? `${trip.linha.codigo} - ${trip.linha.nome}` : "-";
+    const driverInfo = trip.motoristas && trip.motoristas.length > 0 
+      ? trip.motoristas.map(m => `${m.nome} (CPF: ${m.cpf})`).join(", ") 
       : "-";
-    const driverInfo =
-      trip.motoristas && trip.motoristas.length > 0
-        ? trip.motoristas.map((m) => `${m.nome} (CPF: ${m.cpf})`).join(", ")
-        : "-";
-    const vehicleInfo = trip.veiculo
-      ? `${trip.veiculo.marcaModelo} (Placa: ${trip.veiculo.placa})`
-      : "-";
+    const vehicleInfo = trip.veiculo ? `${trip.veiculo.marcaModelo} (Placa: ${trip.veiculo.placa})` : "-";
 
     // Open a beautifully styled print view of DAMDFE
     const printWindow = window.open("", "_blank");
@@ -999,7 +926,7 @@ export function TripDetail({
       alert("Por favor, permita popups para imprimir o DAMDFE.");
       return;
     }
-
+    
     printWindow.document.write(`
       <html>
         <head>
@@ -1029,7 +956,7 @@ export function TripDetail({
             <div class="grid grid-cols-12 border border-black divide-x divide-black text-center">
               <div class="col-span-4 p-3 flex flex-col justify-center items-center">
                 <p class="font-extrabold text-sm tracking-wider uppercase text-gray-800">EMISSOR DO MANIFESTO</p>
-                <p class="font-black text-lg text-blue-900">${trip.agenciaOrigemSigla || "TRANSPORTES S.A."}</p>
+                <p class="font-black text-lg text-blue-900">${trip.agenciaOrigemSigla || 'TRANSPORTES S.A.'}</p>
                 <p class="text-[9px] text-gray-500 font-mono">Agência Integrada de Cargas</p>
               </div>
               <div class="col-span-4 p-3 flex flex-col justify-center items-center">
@@ -1057,11 +984,11 @@ export function TripDetail({
                 </div>
                 <div>
                   <span class="font-bold text-gray-700 block">Agência de Origem</span>
-                  <span>${trip.agenciaOrigemSigla || "-"} - ${trip.linha?.origem || "Origem"}</span>
+                  <span>${trip.agenciaOrigemSigla || '-'} - ${trip.linha?.origem || 'Origem'}</span>
                 </div>
                 <div>
                   <span class="font-bold text-gray-700 block">Agência de Destino</span>
-                  <span>${trip.agenciaDestinoSigla || "-"} - ${trip.linha?.destino || "Destino"}</span>
+                  <span>${trip.agenciaDestinoSigla || '-'} - ${trip.linha?.destino || 'Destino'}</span>
                 </div>
               </div>
             </div>
@@ -1075,7 +1002,7 @@ export function TripDetail({
                 </div>
                 <div>
                   <p class="mb-1"><span class="font-bold text-gray-700">Motorista(s) Operador(es):</span> ${driverInfo}</p>
-                  <p><span class="font-bold text-gray-700">Data Homologação:</span> ${new Date(doc.dataGeracao).toLocaleString("pt-BR")}</p>
+                  <p><span class="font-bold text-gray-700">Data Homologação:</span> ${new Date(doc.dataGeracao).toLocaleString('pt-BR')}</p>
                 </div>
               </div>
             </div>
@@ -1093,25 +1020,18 @@ export function TripDetail({
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  ${
-                    (trip.controlesCarga || [])
-                      .map(
-                        (c) => `
+                  ${(trip.controlesCarga || []).map(c => `
                     <tr>
                       <td class="py-1.5 font-mono text-[10 px] text-gray-800">${c.chave}</td>
                       <td class="py-1.5">${c.origemSigla} &rarr; ${c.destinoSigla}</td>
-                      <td class="py-1.5 text-center font-semibold">${c.pesoKg || "120.00"} Kg</td>
-                      <td class="py-1.5 text-right font-bold text-blue-900">R$ ${c.valorFrete || "450,00"}</td>
+                      <td class="py-1.5 text-center font-semibold">${c.pesoKg || '120.00'} Kg</td>
+                      <td class="py-1.5 text-right font-bold text-blue-900">R$ ${c.valorFrete || '450,00'}</td>
                     </tr>
-                  `,
-                      )
-                      .join("") ||
-                    `
+                  `).join("") || `
                     <tr>
                       <td colspan="4" class="py-3 text-center text-gray-400 italic font-medium">Nenhum controle de carga fiscal vinculado diretamente a este MDF-e.</td>
                     </tr>
-                  `
-                  }
+                  `}
                 </tbody>
               </table>
             </div>
@@ -1170,9 +1090,9 @@ BT
 70 755 Td
 (SITUACAO EMISSAO: ${doc.status}) Tj
 70 740 Td
-(ROTA COMERCIAL: ${trip.agenciaOrigemSigla || "-"} PARA ${trip.agenciaDestinoSigla || "-"}) Tj
+(ROTA COMERCIAL: ${trip.agenciaOrigemSigla || '-'} PARA ${trip.agenciaDestinoSigla || '-'}) Tj
 70 725 Td
-(VEICULO: ${trip.veiculo?.marcaModelo || "-"} Placa: ${trip.veiculo?.placa || "-"}) Tj
+(VEICULO: ${trip.veiculo?.marcaModelo || '-'} Placa: ${trip.veiculo?.placa || '-'}) Tj
 70 710 Td
 (CONDUTOR DE CARGA: ${driverInfo}) Tj
 70 680 Td
@@ -1204,9 +1124,9 @@ trailer
 startxref
 871
 %%EOF`;
-      const blob = new Blob([pdfText], { type: "application/pdf" });
+      const blob = new Blob([pdfText], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
       a.download = `DAMDFE_N_${doc.numero}.pdf`;
       document.body.appendChild(a);
@@ -1230,33 +1150,25 @@ startxref
       // Simulate API process time for 1.8 seconds.
       await new Promise((resolve) => setTimeout(resolve, 1800));
 
-      const reasons =
-        ciotStatus === "REJEITADO"
-          ? ciotMotivoRejeicao
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : [];
-
-      if (ciotStatus === "REJEITADO" && reasons.length === 0) {
-        reasons.push(
-          ciotMotivoRejeicao.trim() ||
-            "Divergência cadastral na validação junto ao órgão regulador.",
-        );
+      const reasons = ciotStatus === 'REJEITADO' 
+        ? ciotMotivoRejeicao.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+      
+      if (ciotStatus === 'REJEITADO' && reasons.length === 0) {
+        reasons.push(ciotMotivoRejeicao.trim() || 'Divergência cadastral na validação junto ao órgão regulador.');
       }
 
-      const descObs = `Cod. Verificador: ${ciotCodigoVerificador || "-"} | R$ Frete: R$ ${ciotValorFrete || "0,00"} | R$ Pedágio: R$ ${ciotValorPedagio || "0,00"}${ciotObservacao ? " | Obs: " + ciotObservacao : ""}`;
+      const descObs = `Cod. Verificador: ${ciotCodigoVerificador || '-'} | R$ Frete: R$ ${ciotValorFrete || '0,00'} | R$ Pedágio: R$ ${ciotValorPedagio || '0,00'}${ciotObservacao ? ' | Obs: ' + ciotObservacao : ''}`;
 
       const manualCiot: FiscalDocument = {
-        tipo: "CIOT",
+        tipo: 'CIOT',
         status: ciotStatus,
         numero: ciotNumero.trim(),
         dataGeracao: new Date().toISOString(),
         dataAtualizacao: new Date().toISOString(),
-        dataRetorno:
-          ciotStatus !== "PENDENTE" ? new Date().toISOString() : undefined,
+        dataRetorno: ciotStatus !== 'PENDENTE' ? new Date().toISOString() : undefined,
         observacao: descObs,
-        motivosRejeicao: reasons,
+        motivosRejeicao: reasons
       };
 
       const updatedDocs = [...trip.documentosFiscais, manualCiot];
@@ -1265,9 +1177,7 @@ startxref
         ...prev,
         documentosFiscais: updatedDocs,
       }));
-      await logisticsService.updateTrip(trip.id, {
-        documentosFiscais: updatedDocs,
-      });
+      await logisticsService.updateTrip(trip.id, { documentosFiscais: updatedDocs });
 
       // Clean form state variables
       setCiotNumero("");
@@ -1278,7 +1188,7 @@ startxref
       setCiotObservacao("");
       setCiotMotivoRejeicao("");
       setIsFillCiotModalOpen(false);
-
+      
       // Trigger Success modal trigger state
       setIsCiotSuccessModalOpen(true);
     } catch (e) {
@@ -1313,7 +1223,7 @@ startxref
   const handleResetTrip = async () => {
     if (
       !confirm(
-        "Aviso: Esta ação limpará todas as vinculações de veículos, motoristas, manifestos (MDF-e/CIOT) e controles de carga desta viagem, arquivando os dados anteriores no banco de dados e preparando a viagem para uma nova geração com as configurações padrão originais.\n\nDeseja prosseguir com o reset da viagem?",
+        "Aviso: Esta ação limpará todas as vinculações de veículos, motoristas, manifestos (MDF-e/CIOT) e controles de carga desta viagem, arquivando os dados anteriores no banco de dados e preparando a viagem para uma nova geração com as configurações padrão originais.\n\nDeseja prosseguir com o reset da viagem?"
       )
     ) {
       return;
@@ -1326,9 +1236,7 @@ startxref
       setTrip(updatedTrip);
       setIsEditing(false); // Voltar para visualização comum pós reset
       onUpdate();
-      alert(
-        "Sucesso!\n\nA viagem foi limpa e resetada com sucesso. Os dados anteriores foram salvos no banco de dados (MongoDB) simulado!",
-      );
+      alert("Sucesso!\n\nA viagem foi limpa e resetada com sucesso. Os dados anteriores foram salvos no banco de dados (MongoDB) simulado!");
     } catch (e) {
       console.error(e);
       alert(e instanceof Error ? e.message : "Erro ao resetar a viagem.");
@@ -1353,12 +1261,10 @@ startxref
         onUpdate();
         onClose();
       } else {
-        const d = initialTrip.dataViagem
-          ? initialTrip.dataViagem.split("T")[0]
-          : new Date().toISOString().split("T")[0];
+        const d = initialTrip.dataViagem ? initialTrip.dataViagem.split('T')[0] : new Date().toISOString().split('T')[0];
         setTrip({
           ...initialTrip,
-          dataViagem: d,
+          dataViagem: d
         });
         setIsEditing(false);
         setIsCancelConfirmOpen(false);
@@ -1412,7 +1318,7 @@ startxref
   return (
     <div className="flex-1 flex flex-col h-full bg-white relative">
       {/* Header */}
-      {/* <div className="bg-primary p-3 text-white flex justify-between items-center shrink-0">
+      <div className="bg-primary p-3 text-white flex justify-between items-center shrink-0">
         <div className="flex items-center gap-2">
           <Clipboard className="w-5 h-5" />
           <div>
@@ -1438,7 +1344,7 @@ startxref
         >
           <X className="w-5 h-5" />
         </button>
-      </div> */}
+      </div>
 
       {/* Action Buttons & Tabs Header */}
       <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex flex-col gap-2 shrink-0">
@@ -1499,16 +1405,15 @@ startxref
                 </button>
               )}
 
-              {(trip.status === "PRONTA" || trip.status === "REJEITADA") &&
-                trip.isPreGenerated && (
-                  <button
-                    onClick={handleCancel}
-                    disabled={loading}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white rounded-md text-[10px] font-bold hover:bg-red-700 disabled:opacity-50 cursor-pointer uppercase shadow-xs"
-                  >
-                    <X className="w-3.5 h-3.5" /> CANCELAR VIAGEM
-                  </button>
-                )}
+              {(trip.status === "PRONTA" || trip.status === "REJEITADA") && trip.isPreGenerated && (
+                <button
+                  onClick={handleCancel}
+                  disabled={loading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white rounded-md text-[10px] font-bold hover:bg-red-700 disabled:opacity-50 cursor-pointer uppercase shadow-xs"
+                >
+                  <X className="w-3.5 h-3.5" /> CANCELAR VIAGEM
+                </button>
+              )}
 
               {isEditable && !trip.isPreGenerated && trip.codigo !== 0 && (
                 <button
@@ -1620,7 +1525,7 @@ startxref
                       "w-full border border-gray-200 rounded-lg p-1.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none font-medium transition-all",
                       canEditFields
                         ? "bg-white text-gray-850 cursor-text"
-                        : "bg-gray-50 text-gray-500 cursor-not-allowed select-none pointer-events-none",
+                        : "bg-gray-50 text-gray-500 cursor-not-allowed select-none pointer-events-none"
                     )}
                   />
                 </div>
@@ -1646,7 +1551,7 @@ startxref
                       "w-full border border-gray-200 rounded-lg p-1.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none font-medium transition-all",
                       canEditFields && !isLocked
                         ? "bg-white text-gray-800 cursor-pointer"
-                        : "bg-gray-50 text-gray-500 cursor-not-allowed",
+                        : "bg-gray-50 text-gray-500 cursor-not-allowed"
                     )}
                   >
                     <option value="Transferência">Transferência</option>
@@ -1660,24 +1565,21 @@ startxref
                   </label>
                   <select
                     disabled={isLocked || !canEditFields}
-                    value={
-                      trip.tipoTransferencia ||
-                      (trip.tipoViagem === "Extra" ? "Extra" : "Escala")
-                    }
+                    value={trip.tipoTransferencia || (trip.tipoViagem === "Extra" ? "Extra" : "Escala")}
                     onChange={(e) => {
                       const val = e.target.value as "Escala" | "Extra";
                       setTrip((prev) => ({
                         ...prev,
                         tipoTransferencia: val,
                         tipoViagem: val === "Extra" ? "Extra" : "Normal",
-                        extraTipo: val === "Extra" ? prev.extraTipo || "" : "",
+                        extraTipo: val === "Extra" ? (prev.extraTipo || "") : "",
                       }));
                     }}
                     className={cn(
                       "w-full border border-gray-200 rounded-lg p-1.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none font-medium transition-all",
                       canEditFields && !isLocked
                         ? "bg-white text-gray-800 cursor-pointer"
-                        : "bg-gray-50 text-gray-500 cursor-not-allowed select-none pointer-events-none",
+                        : "bg-gray-50 text-gray-500 cursor-not-allowed select-none pointer-events-none"
                     )}
                   >
                     <option value="Escala">Escala</option>
@@ -1687,15 +1589,12 @@ startxref
               </div>
 
               {/* Extra Tipo Conditional Field */}
-              {(trip.tipoTransferencia === "Extra" ||
-                trip.tipoViagem === "Extra") && (
+              {(trip.tipoTransferencia === "Extra" || trip.tipoViagem === "Extra") && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1">
                   <div className="md:col-span-2">
                     <label className="block text-[10px] font-black text-primary mb-0.5 uppercase tracking-wider flex items-center gap-1.5">
                       Extra Tipo
-                      <span className="text-[9px] font-medium text-gray-400 normal-case">
-                        (motivo da viagem extra)
-                      </span>
+                      <span className="text-[9px] font-medium text-gray-400 normal-case">(motivo da viagem extra)</span>
                     </label>
                     <select
                       disabled={isLocked || !canEditFields}
@@ -1711,16 +1610,12 @@ startxref
                         "w-full border rounded-lg p-1.5 text-xs focus:ring-2 outline-none font-medium transition-all",
                         canEditFields && !isLocked
                           ? "bg-white border-primary/40 text-gray-800 cursor-pointer focus:ring-primary/20"
-                          : "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed select-none pointer-events-none",
+                          : "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed select-none pointer-events-none"
                       )}
                     >
                       <option value="">Selecione o motivo...</option>
-                      <option value="Demanda Excedente">
-                        Demanda Excedente
-                      </option>
-                      <option value="Devolução de Veículo">
-                        Devolução de Veículo
-                      </option>
+                      <option value="Demanda Excedente">Demanda Excedente</option>
+                      <option value="Devolução de Veículo">Devolução de Veículo</option>
                       <option value="Outros">Outros</option>
                     </select>
                   </div>
@@ -1729,20 +1624,31 @@ startxref
             </div>
 
             {/* Secao 2: Dados da Linha de Transferencia */}
-            <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs space-y-4">
+            <div className="bg-white rounded-xl border border-gray-100 p-3.5 shadow-xs space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-gray-50">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-primary" />
                   <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider">
-                    Dados de Linha de Transferência Usada
+                    Linha de Transferência e Trecho
                   </h3>
                 </div>
-                <span className="text-[9px] text-gray-400 italic">
-                  *Clique em Código para abrir o modal de seleção de Linhas
-                </span>
+                <div className="flex items-center gap-2">
+                  {trip.codigoLinha && (
+                    <button
+                      type="button"
+                      onClick={() => setShowTrackingInfo(!showTrackingInfo)}
+                      className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer bg-primary/5 px-2 py-0.5 rounded-md"
+                    >
+                      {showTrackingInfo ? "Ocultar Rastreio" : "Ver Rastreio e Rota"}
+                    </button>
+                  )}
+                  <span className="text-[9px] text-gray-400 italic">
+                    *Clique no código para alterar a linha
+                  </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[10px] font-black text-gray-500 mb-0.5 uppercase tracking-wider">
                     Código de Linha
@@ -1754,24 +1660,19 @@ startxref
                       tabIndex={canEditFields ? undefined : -1}
                       value={trip.codigoLinha || ""}
                       onClick={() => canEditFields && setIsLineModalOpen(true)}
-                      placeholder="Clique para selecionar..."
+                      placeholder="Selecionar linha..."
                       className={cn(
                         "w-full rounded-lg p-1.5 pr-8 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all select-none",
                         canEditFields
                           ? "bg-white border border-primary/20 hover:border-primary/50 text-primary font-bold cursor-pointer"
-                          : "bg-gray-100 border border-gray-200 text-gray-500 font-medium cursor-not-allowed pointer-events-none",
+                          : "bg-gray-100 border border-gray-200 text-gray-500 font-medium cursor-not-allowed pointer-events-none"
                       )}
                     />
-                    <Search
-                      className={cn(
-                        "w-3.5 h-3.5 absolute right-2.5 top-2.5 pointer-events-none",
-                        canEditFields ? "text-primary" : "text-gray-400",
-                      )}
-                    />
+                    <Search className={cn("w-3.5 h-3.5 absolute right-2.5 top-2.5 pointer-events-none", canEditFields ? "text-primary" : "text-gray-400")} />
                   </div>
                 </div>
 
-                <div className="col-span-2">
+                <div className="md:col-span-2">
                   <label className="block text-[10px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
                     Descrição da Linha
                   </label>
@@ -1785,18 +1686,63 @@ startxref
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
-                    Código do Trecho
+                  <label className="block text-[10px] font-black text-gray-500 mb-0.5 uppercase tracking-wider">
+                    Trecho da Linha
                   </label>
-                  <input
-                    type="text"
-                    disabled={true}
-                    tabIndex={-1}
-                    value={trip.codigoTrecho || ""}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none disabled:bg-gray-100 text-gray-600 font-medium select-none pointer-events-none"
-                  />
+                  {canEditFields ? (
+                    (() => {
+                      const hasLineSelected = Boolean(trip.codigoLinha || trip.nomeLinha);
+                      return (
+                        <select
+                          value={trip.codigoTrecho || ""}
+                          disabled={!hasLineSelected}
+                          onChange={(e) => {
+                            const sel = AVAILABLE_TRECHOS.find(t => t.codigo === e.target.value);
+                            if (sel) {
+                              setTrip(prev => ({
+                                ...prev,
+                                codigoTrecho: sel.codigo,
+                                origemTrecho: sel.origem,
+                                destinoTrecho: sel.destino,
+                              }));
+                            } else if (!e.target.value) {
+                              setTrip(prev => ({
+                                ...prev,
+                                codigoTrecho: "",
+                                origemTrecho: "",
+                                destinoTrecho: "",
+                              }));
+                            }
+                          }}
+                          className={cn(
+                            "w-full rounded-lg p-1.5 text-xs outline-none transition-all",
+                            hasLineSelected
+                              ? "bg-white border border-primary/30 text-gray-800 font-bold cursor-pointer focus:ring-2 focus:ring-primary/20"
+                              : "bg-gray-100 border border-gray-200 text-gray-400 font-medium cursor-not-allowed pointer-events-none"
+                          )}
+                        >
+                          <option value="">
+                            {hasLineSelected ? "Selecione o trecho..." : "Selecione uma linha primeiro"}
+                          </option>
+                          {AVAILABLE_TRECHOS.map(t => (
+                            <option key={t.codigo} value={t.codigo}>
+                              {t.codigo} - {t.origem} ➔ {t.destino}
+                            </option>
+                          ))}
+                        </select>
+                      );
+                    })()
+                  ) : (
+                    <input
+                      type="text"
+                      disabled={true}
+                      tabIndex={-1}
+                      value={trip.codigoTrecho || ""}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none text-gray-600 font-medium select-none pointer-events-none"
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -1808,7 +1754,7 @@ startxref
                     disabled={true}
                     tabIndex={-1}
                     value={trip.origemTrecho || ""}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none disabled:bg-gray-100 text-gray-600 font-medium select-none pointer-events-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none text-gray-600 font-medium select-none pointer-events-none"
                   />
                 </div>
 
@@ -1821,13 +1767,13 @@ startxref
                     disabled={true}
                     tabIndex={-1}
                     value={trip.destinoTrecho || ""}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none disabled:bg-gray-100 text-gray-600 font-medium select-none pointer-events-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none text-gray-600 font-medium select-none pointer-events-none"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-50/50 pt-2">
-                <div className="col-span-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-gray-50">
+                <div>
                   <label className="block text-[10px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
                     Previsão de Saída
                   </label>
@@ -1840,64 +1786,79 @@ startxref
                         ? new Date(trip.previsaoSaida).toLocaleString()
                         : ""
                     }
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none disabled:bg-gray-100 text-gray-600 font-medium select-none pointer-events-none"
-                  />
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-[10px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
-                    Chave do Rastreio
-                  </label>
-                  <input
-                    type="text"
-                    disabled={true}
-                    tabIndex={-1}
-                    value={trip.chaveRastreio || ""}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none disabled:bg-gray-100 text-gray-600 font-medium truncate select-none pointer-events-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none text-gray-600 font-medium select-none pointer-events-none"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
-                    Código do Rastreio
-                  </label>
-                  <input
-                    type="text"
-                    disabled={true}
-                    tabIndex={-1}
-                    value={trip.codigoRastreio || ""}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none disabled:bg-gray-100 text-gray-600 font-medium select-none pointer-events-none"
-                  />
-                </div>
+              {/* Collapsible Tracking & Route Section */}
+              {showTrackingInfo && (
+                <div className="p-3 bg-gray-50/80 rounded-xl border border-gray-100 space-y-3 animate-fadeIn">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-gray-200/60">
+                    <span className="text-[10px] font-black text-gray-700 uppercase tracking-wider">
+                      Informações de Rastreio e Rota
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowTrackingInfo(false)}
+                      className="text-[10px] font-bold text-gray-400 hover:text-gray-600 cursor-pointer"
+                    >
+                      Fechar
+                    </button>
+                  </div>
 
-                <div>
-                  <label className="block text-[10px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
-                    Código da Rota do Rastreio
-                  </label>
-                  <input
-                    type="text"
-                    disabled={true}
-                    tabIndex={-1}
-                    value={trip.codigoRotaRastreio || ""}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none disabled:bg-gray-100 text-gray-600 font-medium select-none pointer-events-none"
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="md:col-span-2">
+                      <label className="block text-[9px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
+                        Chave do Rastreio
+                      </label>
+                      <input
+                        type="text"
+                        disabled={true}
+                        tabIndex={-1}
+                        value={trip.chaveRastreio || ""}
+                        className="w-full bg-white border border-gray-200 rounded-lg p-1.5 text-xs outline-none text-gray-600 font-mono select-none pointer-events-none truncate"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
+                        Código do Rastreio
+                      </label>
+                      <input
+                        type="text"
+                        disabled={true}
+                        tabIndex={-1}
+                        value={trip.codigoRastreio || ""}
+                        className="w-full bg-white border border-gray-200 rounded-lg p-1.5 text-xs outline-none text-gray-600 font-medium select-none pointer-events-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
+                        Código da Rota do Rastreio
+                      </label>
+                      <input
+                        type="text"
+                        disabled={true}
+                        tabIndex={-1}
+                        value={trip.codigoRotaRastreio || ""}
+                        className="w-full bg-white border border-gray-200 rounded-lg p-1.5 text-xs outline-none text-gray-600 font-medium select-none pointer-events-none"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[9px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
+                        Descrição da Rota do Rastreio
+                      </label>
+                      <input
+                        type="text"
+                        disabled={true}
+                        tabIndex={-1}
+                        value={trip.descricaoRotaRastreio || ""}
+                        className="w-full bg-white border border-gray-200 rounded-lg p-1.5 text-xs outline-none text-gray-600 font-medium select-none pointer-events-none"
+                      />
+                    </div>
+                  </div>
                 </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-gray-400 mb-0.5 uppercase tracking-wider">
-                    Descrição da Rota do Rastreio
-                  </label>
-                  <input
-                    type="text"
-                    disabled={true}
-                    tabIndex={-1}
-                    value={trip.descricaoRotaRastreio || ""}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-xs outline-none disabled:bg-gray-100 text-gray-600 font-medium select-none pointer-events-none"
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Secao 3: Veiculos & Motoristas */}
@@ -2187,7 +2148,7 @@ startxref
                   "p-3 rounded-xl border flex items-center justify-between text-xs font-semibold animate-in fade-in slide-in-from-top duration-200 shadow-xs",
                   docFeedback.type === "success"
                     ? "bg-green-50 border-green-200 text-green-800"
-                    : "bg-blue-50 border-blue-200 text-blue-800",
+                    : "bg-blue-50 border-blue-200 text-blue-800"
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -2220,14 +2181,12 @@ startxref
                   <p className="text-[10px] text-gray-500 font-medium mt-0.5">
                     Configuração da Linha:{" "}
                     <strong className="text-gray-700">
-                      {trip.agenciaOrigemSigla || "SAO"} ➔{" "}
-                      {trip.agenciaDestinoSigla || "RIO"}
+                      {trip.agenciaOrigemSigla || "SAO"} ➔ {trip.agenciaDestinoSigla || "RIO"}
                     </strong>{" "}
                     • {trip.nomeLinha || "Linha Principal"}
                     {!canEditFields && isEditable && (
                       <span className="block text-amber-600 font-semibold mt-0.5">
-                        * Ações bloqueadas. Clique em "EDITAR VIAGEM" no topo
-                        para habilitar a gestão de documentos.
+                        * Ações bloqueadas. Clique em "EDITAR VIAGEM" no topo para habilitar a gestão de documentos.
                       </span>
                     )}
                   </p>
@@ -2249,7 +2208,7 @@ startxref
                       "flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-xs",
                       canEditFields
                         ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20 hover:shadow-md cursor-pointer active:scale-98"
-                        : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60",
+                        : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60"
                     )}
                   >
                     <FolderPlus className="w-3.5 h-3.5 shrink-0" />
@@ -2270,7 +2229,7 @@ startxref
                       "flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-xs",
                       canEditFields
                         ? "bg-primary hover:bg-primary/90 text-white shadow-primary/20 hover:shadow-md cursor-pointer active:scale-98"
-                        : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60",
+                        : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60"
                     )}
                   >
                     <ListPlus className="w-3.5 h-3.5 shrink-0" />
@@ -2280,30 +2239,25 @@ startxref
                   {/* Ação 3: Remover documentos da viagem */}
                   <button
                     type="button"
-                    disabled={
-                      !canEditFields || markedControleIds.size === 0 || loading
-                    }
+                    disabled={!canEditFields || markedControleIds.size === 0 || loading}
                     onClick={handleRemoveMarkedControles}
                     title={
                       !canEditFields
                         ? "Clique em 'Editar Viagem' no topo para habilitar esta ação"
                         : markedControleIds.size === 0
-                          ? "Marque os documentos na lista para remover"
-                          : `Remover ${markedControleIds.size} documento(s) marcado(s) da viagem`
+                        ? "Marque os documentos na lista para remover"
+                        : `Remover ${markedControleIds.size} documento(s) marcado(s) da viagem`
                     }
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-xs",
                       canEditFields && markedControleIds.size > 0
                         ? "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20 hover:shadow-md cursor-pointer active:scale-98"
-                        : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60",
+                        : "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60"
                     )}
                   >
                     <Trash2 className="w-3.5 h-3.5 shrink-0" />
                     <span>
-                      Remover Documentos{" "}
-                      {markedControleIds.size > 0
-                        ? `(${markedControleIds.size})`
-                        : ""}
+                      Remover Documentos {markedControleIds.size > 0 ? `(${markedControleIds.size})` : ""}
                     </span>
                   </button>
                 </div>
@@ -2320,7 +2274,7 @@ startxref
                       "w-full border rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all pr-8",
                       canEditFields
                         ? "bg-white border-gray-200 hover:border-gray-300 text-gray-800"
-                        : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-60",
+                        : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
                     )}
                     value={controleKey}
                     onChange={(e) => setControleKey(e.target.value)}
@@ -2331,11 +2285,7 @@ startxref
                     disabled={!canEditFields || !controleKey}
                     onClick={performAddControle}
                     className="absolute right-1.5 top-1 p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-primary transition-colors cursor-pointer disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                    title={
-                      !canEditFields
-                        ? "Habilite a edição para vincular chaves"
-                        : "Buscar e vincular chave"
-                    }
+                    title={!canEditFields ? "Habilite a edição para vincular chaves" : "Buscar e vincular chave"}
                   >
                     <Search className="w-3.5 h-3.5" />
                   </button>
@@ -2365,33 +2315,28 @@ startxref
                   "flex items-center gap-2 select-none",
                   canEditFields && (trip.controlesCarga || []).length > 0
                     ? "cursor-pointer"
-                    : "cursor-not-allowed opacity-60",
+                    : "cursor-not-allowed opacity-60"
                 )}
               >
                 <input
                   type="checkbox"
                   checked={
                     (trip.controlesCarga || []).length > 0 &&
-                    markedControleIds.size ===
-                      (trip.controlesCarga || []).length
+                    markedControleIds.size === (trip.controlesCarga || []).length
                   }
                   onChange={toggleMarkAllControles}
-                  disabled={
-                    (trip.controlesCarga || []).length === 0 || !canEditFields
-                  }
+                  disabled={(trip.controlesCarga || []).length === 0 || !canEditFields}
                   className="w-4 h-4 rounded text-red-600 border-gray-300 focus:ring-red-500 cursor-pointer disabled:cursor-not-allowed"
                 />
                 <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-                  Marcar Todos ({markedControleIds.size}/
-                  {(trip.controlesCarga || []).length})
+                  Marcar Todos ({markedControleIds.size}/{(trip.controlesCarga || []).length})
                 </span>
               </label>
 
               {markedControleIds.size > 0 && (
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md">
-                    {markedControleIds.size} documento(s) marcado(s) para
-                    remoção
+                    {markedControleIds.size} documento(s) marcado(s) para remoção
                   </span>
                   {canEditFields && (
                     <button
@@ -2430,8 +2375,7 @@ startxref
                         onClick={handleAddAllLineDocuments}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white rounded-md text-[10px] font-bold hover:bg-emerald-700 cursor-pointer uppercase shadow-xs"
                       >
-                        <FolderPlus className="w-3.5 h-3.5" /> Adicionar Todos
-                        da Linha
+                        <FolderPlus className="w-3.5 h-3.5" /> Adicionar Todos da Linha
                       </button>
                       <button
                         type="button"
@@ -2446,18 +2390,14 @@ startxref
               ) : (
                 <div className="space-y-3">
                   {(trip.controlesCarga || []).map((controle) => {
-                    const isMarked = markedControleIds.has(
-                      controle.id || controle.chave,
-                    );
-                    const isExpanded = expandedControles.has(
-                      controle.id || controle.chave,
-                    );
+                    const isMarked = markedControleIds.has(controle.id || controle.chave);
+                    const isExpanded = expandedControles.has(controle.id || controle.chave);
                     const isLineMatch =
                       controle.origemSigla === trip.agenciaOrigemSigla &&
                       controle.destinoSigla === trip.agenciaDestinoSigla;
                     const totalValorControle = (controle.ctes || []).reduce(
                       (s, c) => s + (c.valor || 0),
-                      0,
+                      0
                     );
 
                     return (
@@ -2467,7 +2407,7 @@ startxref
                           "bg-white rounded-xl border overflow-hidden shadow-xs transition-all",
                           isMarked
                             ? "border-red-300 bg-red-50/20 ring-1 ring-red-300"
-                            : "border-gray-100 hover:border-gray-200",
+                            : "border-gray-100 hover:border-gray-200"
                         )}
                       >
                         <div className="p-3 flex items-center justify-between gap-3 bg-gray-50/60 hover:bg-gray-50 transition-colors">
@@ -2477,22 +2417,14 @@ startxref
                               <input
                                 type="checkbox"
                                 checked={isMarked}
-                                onChange={() =>
-                                  toggleMarkControle(
-                                    controle.id || controle.chave,
-                                  )
-                                }
+                                onChange={() => toggleMarkControle(controle.id || controle.chave)}
                                 className="w-4 h-4 rounded text-red-600 border-gray-300 focus:ring-red-500 cursor-pointer shrink-0"
                                 title="Marcar este documento para remoção"
                               />
                             )}
 
                             <div
-                              onClick={() =>
-                                toggleControleExpansion(
-                                  controle.id || controle.chave,
-                                )
-                              }
+                              onClick={() => toggleControleExpansion(controle.id || controle.chave)}
                               className="flex items-center gap-2.5 cursor-pointer min-w-0"
                             >
                               <ClipboardList className="w-4 h-4 text-primary shrink-0" />
@@ -2506,11 +2438,10 @@ startxref
                                       "text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider",
                                       isLineMatch
                                         ? "bg-emerald-100 text-emerald-800"
-                                        : "bg-blue-100 text-blue-800",
+                                        : "bg-blue-100 text-blue-800"
                                     )}
                                   >
-                                    {controle.origemSigla} ➔{" "}
-                                    {controle.destinoSigla}
+                                    {controle.origemSigla} ➔ {controle.destinoSigla}
                                   </span>
                                   {isLineMatch && (
                                     <span className="text-[8px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 px-1 rounded uppercase tracking-tighter">
@@ -2519,8 +2450,7 @@ startxref
                                   )}
                                 </div>
                                 <span className="text-[9px] text-gray-400 font-medium mt-0.5">
-                                  {(controle.ctes || []).length} CT-e(s) •
-                                  Total: R${" "}
+                                  {(controle.ctes || []).length} CT-e(s) • Total: R${" "}
                                   {totalValorControle.toLocaleString("pt-BR", {
                                     minimumFractionDigits: 2,
                                   })}
@@ -2532,11 +2462,7 @@ startxref
                           <div className="flex items-center gap-2 shrink-0">
                             <button
                               type="button"
-                              onClick={() =>
-                                toggleControleExpansion(
-                                  controle.id || controle.chave,
-                                )
-                              }
+                              onClick={() => toggleControleExpansion(controle.id || controle.chave)}
                               className="p-1 hover:bg-gray-200 rounded text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
                               title={isExpanded ? "Ocultar CT-es" : "Ver CT-es"}
                             >
@@ -2551,10 +2477,7 @@ startxref
                               <button
                                 type="button"
                                 onClick={() =>
-                                  handleRemoveSingleControle(
-                                    controle.id,
-                                    controle.chave,
-                                  )
+                                  handleRemoveSingleControle(controle.id, controle.chave)
                                 }
                                 className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
                                 title="Remover este documento da viagem"
@@ -2596,12 +2519,9 @@ startxref
                                     </div>
                                     <span className="text-[10px] font-bold text-gray-700 font-mono shrink-0 pl-2">
                                       R${" "}
-                                      {(cte.valor || 0).toLocaleString(
-                                        "pt-BR",
-                                        {
-                                          minimumFractionDigits: 2,
-                                        },
-                                      )}
+                                      {(cte.valor || 0).toLocaleString("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                      })}
                                     </span>
                                   </div>
                                 ))}
@@ -2685,31 +2605,22 @@ startxref
                 <button
                   type="button"
                   onClick={handleResendFiscalDocumentation}
-                  disabled={
-                    loading ||
-                    trip.documentosFiscais.length === 0 ||
-                    !canEditFields
-                  }
+                  disabled={loading || trip.documentosFiscais.length === 0 || !canEditFields}
                   className={cn(
                     "px-3.5 py-2 border rounded-lg text-[10px] font-black transition-all shadow-xs flex items-center gap-1.5 uppercase tracking-wider cursor-pointer",
                     canEditFields && trip.documentosFiscais.length > 0
                       ? "border-primary bg-primary text-white hover:bg-primary-hover shadow-primary/20 active:scale-98"
-                      : "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed opacity-60",
+                      : "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed opacity-60"
                   )}
                   title={
                     !canEditFields
                       ? "Clique em 'EDITAR VIAGEM' no topo para habilitar o reenvio"
                       : trip.documentosFiscais.length === 0
-                        ? "Nenhum documento fiscal cadastrado nesta viagem para reenviar solicitação"
-                        : "Reenviar solicitação de documentação fiscal para a SEFAZ/órgãos reguladores"
+                      ? "Nenhum documento fiscal cadastrado nesta viagem para reenviar solicitação"
+                      : "Reenviar solicitação de documentação fiscal para a SEFAZ/órgãos reguladores"
                   }
                 >
-                  <RotateCcw
-                    className={cn(
-                      "w-3.5 h-3.5 shrink-0",
-                      loading && "animate-spin",
-                    )}
-                  />
+                  <RotateCcw className={cn("w-3.5 h-3.5 shrink-0", loading && "animate-spin")} />
                   <span>Reenviar Solicitação de Documentação</span>
                 </button>
               </div>
@@ -2726,8 +2637,7 @@ startxref
                 <div className="flex items-center gap-2">
                   <Info className="w-4 h-4 text-amber-600 shrink-0" />
                   <span className="text-[11px] font-semibold">
-                    Para reenviar solicitação de documentação fiscal, clique no
-                    botão <strong>EDITAR VIAGEM</strong> no topo.
+                    Para reenviar solicitação de documentação fiscal, clique no botão <strong>EDITAR VIAGEM</strong> no topo.
                   </span>
                 </div>
                 {isEditable && (
@@ -2774,30 +2684,26 @@ startxref
                       color: "bg-gray-100",
                       text: "text-gray-600",
                     };
-                    const isCiot = doc.tipo === "CIOT";
-
+                    const isCiot = doc.tipo === 'CIOT';
+                    
                     return (
                       <tr
                         key={idx}
                         className={cn(
                           "border-b border-gray-50 last:border-0 hover:bg-gray-50/40 h-12 transition-colors",
-                          doc.status === "REJEITADO" ? "bg-orange-50/10" : "",
+                          doc.status === 'REJEITADO' ? 'bg-orange-50/10' : ''
                         )}
                       >
                         {/* Coluna Documento */}
                         <td className="px-3 py-2 text-left align-middle">
                           <div className="flex items-center gap-1.5 h-full">
-                            <FileText
-                              size={16}
-                              strokeWidth={2}
-                              className={`shrink-0 ${isCiot ? "text-blue-500" : "text-purple-600"}`}
-                            />
+                            <FileText size={16} strokeWidth={2} className={`shrink-0 ${isCiot ? 'text-blue-500' : 'text-purple-600'}`} />
                             <span className="text-[10px] font-bold text-gray-800">
                               {doc.tipo}
                             </span>
                           </div>
                         </td>
-
+                        
                         {/* Coluna Situação */}
                         <td className="px-3 py-2 text-left align-middle">
                           <div className="flex items-center h-full">
@@ -2812,54 +2718,43 @@ startxref
                             </span>
                           </div>
                         </td>
-
+                        
                         {/* Coluna Número */}
                         <td className="px-3 py-2 text-left align-middle text-[10px] font-semibold text-gray-700 font-mono">
                           <div className="flex items-center h-full">
                             {doc.numero || `DOC-${100000 + idx}`}
                           </div>
                         </td>
-
+                        
                         {/* Coluna Geração */}
                         <td className="px-3 py-2 text-left align-middle text-[9px] font-semibold text-gray-500">
                           <div className="flex items-center h-full">
                             {formatDateTime(doc.dataGeracao)}
                           </div>
                         </td>
-
+                        
                         {/* Coluna Retorno */}
                         <td className="px-3 py-2 text-left align-middle text-[9px] font-semibold text-gray-500">
                           <div className="flex items-center h-full">
-                            {normStatus === "PENDENTE" ? (
+                            {normStatus === 'PENDENTE' ? (
                               <span className="text-gray-400 italic flex items-center gap-1">
-                                <Clock
-                                  size={12}
-                                  strokeWidth={2}
-                                  className="animate-pulse"
-                                />{" "}
-                                Processando...
+                                <Clock size={12} strokeWidth={2} className="animate-pulse" /> Processando...
                               </span>
                             ) : (
-                              formatDateTime(
-                                doc.dataRetorno ||
-                                  doc.dataAtualizacao ||
-                                  doc.dataGeracao,
-                              )
+                              formatDateTime(doc.dataRetorno || doc.dataAtualizacao || doc.dataGeracao)
                             )}
                           </div>
                         </td>
-
+                        
                         {/* Coluna Ações */}
                         <td className="px-3 py-2 text-right align-middle pr-4">
                           <div className="flex items-center justify-end gap-2 h-full">
                             {/* Ação Cancelar (quando Autorizado) */}
-                            {normStatus === "AUTORIZADO" && (
+                            {normStatus === 'AUTORIZADO' && (
                               <button
                                 onClick={() => {
                                   if (!canEditFields) {
-                                    alert(
-                                      "Para cancelar documentos, clique primeiro no botão 'EDITAR VIAGEM'.",
-                                    );
+                                    alert("Para cancelar documentos, clique primeiro no botão 'EDITAR VIAGEM'.");
                                     return;
                                   }
                                   handleCancelSingleDoc(doc);
@@ -2868,25 +2763,19 @@ startxref
                                   "group relative p-1 rounded transition-colors",
                                   !canEditFields
                                     ? "text-gray-300 opacity-40 cursor-not-allowed"
-                                    : "text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer",
+                                    : "text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
                                 )}
-                                title={
-                                  !canEditFields
-                                    ? "Habilite a edição para cancelar"
-                                    : "Cancelar Documento"
-                                }
+                                title={!canEditFields ? "Habilite a edição para cancelar" : "Cancelar Documento"}
                               >
                                 <XCircle size={16} strokeWidth={2} />
                                 <span className="pointer-events-none absolute right-0 bottom-full mb-1 bg-gray-900 text-white text-[8px] font-black py-0.5 px-1.5 rounded shadow-lg z-50 whitespace-nowrap hidden group-hover:block">
-                                  {!canEditFields
-                                    ? "Habilite a edição para cancelar"
-                                    : "Cancelar Documento"}
+                                  {!canEditFields ? "Habilite a edição para cancelar" : "Cancelar Documento"}
                                 </span>
                               </button>
                             )}
 
                             {/* Ação Consultar Status (quando Aguardando Retorno / Pendente) */}
-                            {normStatus === "PENDENTE" && (
+                            {normStatus === 'PENDENTE' && (
                               <button
                                 onClick={() => handleConsultSingleStatus(doc)}
                                 className="group relative p-1 hover:bg-blue-50 rounded text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
@@ -2900,13 +2789,11 @@ startxref
                             )}
 
                             {/* Ação Reenviar Autorização (quando Rejeitado) */}
-                            {normStatus === "REJEITADO" && (
+                            {normStatus === 'REJEITADO' && (
                               <button
                                 onClick={() => {
                                   if (!canEditFields) {
-                                    alert(
-                                      "Para reenviar autorização, clique primeiro no botão 'EDITAR VIAGEM'.",
-                                    );
+                                    alert("Para reenviar autorização, clique primeiro no botão 'EDITAR VIAGEM'.");
                                     return;
                                   }
                                   handleResendSingleAuth(doc);
@@ -2915,19 +2802,13 @@ startxref
                                   "group relative p-1 rounded transition-colors",
                                   !canEditFields
                                     ? "text-gray-300 opacity-40 cursor-not-allowed"
-                                    : "text-purple-600 hover:text-purple-800 hover:bg-purple-50 cursor-pointer",
+                                    : "text-purple-600 hover:text-purple-800 hover:bg-purple-50 cursor-pointer"
                                 )}
-                                title={
-                                  !canEditFields
-                                    ? "Habilite a edição para reenviar"
-                                    : "Reenviar Autorização"
-                                }
+                                title={!canEditFields ? "Habilite a edição para reenviar" : "Reenviar Autorização"}
                               >
                                 <RotateCcw size={16} strokeWidth={2} />
                                 <span className="pointer-events-none absolute right-0 bottom-full mb-1 bg-gray-900 text-white text-[8px] font-black py-0.5 px-1.5 rounded shadow-lg z-50 whitespace-nowrap hidden group-hover:block">
-                                  {!canEditFields
-                                    ? "Habilite a edição para reenviar"
-                                    : "Reenviar Autorização"}
+                                  {!canEditFields ? "Habilite a edição para reenviar" : "Reenviar Autorização"}
                                 </span>
                               </button>
                             )}
@@ -2945,7 +2826,7 @@ startxref
                             </button>
 
                             {/* Ação Imprimir (apenas para MDF-e) */}
-                            {doc.tipo === "MDF-E" && (
+                            {doc.tipo === 'MDF-E' && (
                               <button
                                 onClick={() => handlePrintMdfe(doc)}
                                 className="group relative p-1 hover:bg-gray-100 rounded text-teal-600 hover:text-teal-800 transition-colors cursor-pointer"
@@ -3015,12 +2896,7 @@ startxref
                       Escolher Documentos para a Viagem
                     </h3>
                     <p className="text-[10px] text-gray-500 font-medium">
-                      Linha:{" "}
-                      <strong className="text-gray-700">
-                        {trip.agenciaOrigemSigla || "SAO"} ➔{" "}
-                        {trip.agenciaDestinoSigla || "RIO"}
-                      </strong>{" "}
-                      ({trip.nomeLinha || "Linha"})
+                      Linha: <strong className="text-gray-700">{trip.agenciaOrigemSigla || "SAO"} ➔ {trip.agenciaDestinoSigla || "RIO"}</strong> ({trip.nomeLinha || "Linha"})
                     </p>
                   </div>
                 </div>
@@ -3044,7 +2920,7 @@ startxref
                       "py-2 px-3 rounded-lg text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer",
                       importFilter === "line"
                         ? "bg-white text-primary shadow-xs ring-1 ring-black/5"
-                        : "text-gray-500 hover:text-gray-800",
+                        : "text-gray-500 hover:text-gray-800"
                     )}
                   >
                     <FolderPlus className="w-3.5 h-3.5" />
@@ -3057,7 +2933,7 @@ startxref
                       "py-2 px-3 rounded-lg text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer",
                       importFilter === "all"
                         ? "bg-white text-primary shadow-xs ring-1 ring-black/5"
-                        : "text-gray-500 hover:text-gray-800",
+                        : "text-gray-500 hover:text-gray-800"
                     )}
                   >
                     <ClipboardList className="w-3.5 h-3.5" />
@@ -3106,15 +2982,15 @@ startxref
                         filteredImportControles.filter(
                           (c) =>
                             !(trip.controlesCarga || []).some(
-                              (tc) => tc.chave === c.chave || tc.id === c.id,
-                            ),
+                              (tc) => tc.chave === c.chave || tc.id === c.id
+                            )
                         ).length > 0 &&
                         filteredImportControles
                           .filter(
                             (c) =>
                               !(trip.controlesCarga || []).some(
-                                (tc) => tc.chave === c.chave || tc.id === c.id,
-                              ),
+                                (tc) => tc.chave === c.chave || tc.id === c.id
+                              )
                           )
                           .every((c) => selectedImportIds.has(c.id || c.chave))
                       }
@@ -3154,18 +3030,16 @@ startxref
                 ) : (
                   filteredImportControles.map((c) => {
                     const isAlreadyLinked = (trip.controlesCarga || []).some(
-                      (tc) => tc.chave === c.chave || tc.id === c.id,
+                      (tc) => tc.chave === c.chave || tc.id === c.id
                     );
                     const isSelected = selectedImportIds.has(c.id || c.chave);
-                    const isExpanded = expandedImportControles.has(
-                      c.id || c.chave,
-                    );
+                    const isExpanded = expandedImportControles.has(c.id || c.chave);
                     const isLineMatch =
                       c.origemSigla === trip.agenciaOrigemSigla &&
                       c.destinoSigla === trip.agenciaDestinoSigla;
                     const totalValor = (c.ctes || []).reduce(
                       (s, cte) => s + (cte.valor || 0),
-                      0,
+                      0
                     );
 
                     return (
@@ -3176,8 +3050,8 @@ startxref
                           isAlreadyLinked
                             ? "border-gray-200 bg-gray-50/50 opacity-75"
                             : isSelected
-                              ? "border-primary bg-primary/2 ring-1 ring-primary/40 shadow-sm"
-                              : "border-gray-200 hover:border-gray-300",
+                            ? "border-primary bg-primary/2 ring-1 ring-primary/40 shadow-sm"
+                            : "border-gray-200 hover:border-gray-300"
                         )}
                       >
                         <div
@@ -3188,7 +3062,7 @@ startxref
                           }}
                           className={cn(
                             "p-3 flex items-center justify-between gap-3 cursor-pointer",
-                            isAlreadyLinked ? "cursor-default" : "",
+                            isAlreadyLinked ? "cursor-default" : ""
                           )}
                         >
                           <div className="flex items-center gap-3 min-w-0">
@@ -3199,8 +3073,8 @@ startxref
                                 isAlreadyLinked
                                   ? "bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed"
                                   : isSelected
-                                    ? "bg-primary border-primary text-white"
-                                    : "border-gray-300 bg-white",
+                                  ? "bg-primary border-primary text-white"
+                                  : "border-gray-300 bg-white"
                               )}
                             >
                               {(isSelected || isAlreadyLinked) && (
@@ -3218,7 +3092,7 @@ startxref
                                     "text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider",
                                     isLineMatch
                                       ? "bg-emerald-100 text-emerald-800"
-                                      : "bg-blue-100 text-blue-800",
+                                      : "bg-blue-100 text-blue-800"
                                   )}
                                 >
                                   {c.origemSigla} ➔ {c.destinoSigla}
@@ -3239,8 +3113,7 @@ startxref
                                 {totalValor.toLocaleString("pt-BR", {
                                   minimumFractionDigits: 2,
                                 })}
-                                {c.ctes?.[0] &&
-                                  ` • ${c.ctes[0].remetente} → ${c.ctes[0].destinatario}`}
+                                {c.ctes?.[0] && ` • ${c.ctes[0].remetente} → ${c.ctes[0].destinatario}`}
                               </span>
                             </div>
                           </div>
@@ -3292,12 +3165,9 @@ startxref
                                     </div>
                                     <span className="font-mono text-gray-700 font-bold shrink-0 pl-2">
                                       R${" "}
-                                      {(cte.valor || 0).toLocaleString(
-                                        "pt-BR",
-                                        {
-                                          minimumFractionDigits: 2,
-                                        },
-                                      )}
+                                      {(cte.valor || 0).toLocaleString("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                      })}
                                     </span>
                                   </div>
                                 ))}
@@ -3389,8 +3259,7 @@ startxref
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                 </div>
                 <p className="text-[9px] text-gray-400 mt-1.5 italic">
-                  * Dê duplo-clique sobre a linha para selecioná-la e preencher
-                  os dados de rastreio.
+                  * Dê duplo-clique sobre a linha para selecioná-la e preencher os dados de rastreio.
                 </p>
               </div>
 
@@ -3403,20 +3272,12 @@ startxref
                       l.codigo?.toString().includes(lineSearch),
                   )
                   .map((l) => {
-                    const originAg = agencies.find(
-                      (a) => a.id === l.origemAgenciaId,
-                    );
-                    const destAg = agencies.find(
-                      (a) => a.id === l.destinoAgenciaId,
-                    );
+                    const originAg = agencies.find((a) => a.id === l.origemAgenciaId);
+                    const destAg = agencies.find((a) => a.id === l.destinoAgenciaId);
 
                     const handleSelectLine = () => {
-                      const origLabel = originAg
-                        ? `${originAg.sigla} (${originAg.nome})`
-                        : "Origem";
-                      const destLabel = destAg
-                        ? `${destAg.sigla} (${destAg.nome})`
-                        : "Destino";
+                      const origLabel = originAg ? `${originAg.sigla} (${originAg.nome})` : "Origem";
+                      const destLabel = destAg ? `${destAg.sigla} (${destAg.nome})` : "Destino";
 
                       setTrip((prev) => ({
                         ...prev,
@@ -3527,18 +3388,12 @@ startxref
                 {vehicles
                   .filter(
                     (v) =>
-                      v.placa
-                        .toLowerCase()
-                        .includes(vehicleSearch.toLowerCase()) ||
-                      v.modelo
-                        .toLowerCase()
-                        .includes(vehicleSearch.toLowerCase()) ||
+                      v.placa.toLowerCase().includes(vehicleSearch.toLowerCase()) ||
+                      v.modelo.toLowerCase().includes(vehicleSearch.toLowerCase()) ||
                       v.codigo?.toString().includes(vehicleSearch),
                   )
                   .map((v) => {
-                    const isSelected = !!trip.veiculos.find(
-                      (x) => x.id === v.id,
-                    );
+                    const isSelected = !!trip.veiculos.find((x) => x.id === v.id);
 
                     const handleToggleVehicle = () => {
                       if (isSelected) {
@@ -3560,9 +3415,7 @@ startxref
                         onClick={handleToggleVehicle}
                         className={cn(
                           "flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer bg-white hover:border-primary/40",
-                          isSelected
-                            ? "border-primary bg-primary/2"
-                            : "border-gray-105",
+                          isSelected ? "border-primary bg-primary/2" : "border-gray-105",
                         )}
                       >
                         <div className="flex items-center gap-3">
@@ -3597,9 +3450,7 @@ startxref
                         <div
                           className={cn(
                             "w-5 h-5 rounded-lg border flex items-center justify-center transition-all",
-                            isSelected
-                              ? "bg-primary border-primary text-white"
-                              : "border-gray-300 bg-white",
+                            isSelected ? "bg-primary border-primary text-white" : "border-gray-300 bg-white",
                           )}
                         >
                           {isSelected && (
@@ -3683,36 +3534,25 @@ startxref
                 {drivers
                   .filter(
                     (d) =>
-                      d.nome
-                        .toLowerCase()
-                        .includes(driverSearch.toLowerCase()) ||
+                      d.nome.toLowerCase().includes(driverSearch.toLowerCase()) ||
                       d.cpf.includes(driverSearch) ||
                       d.codigo?.toString().includes(driverSearch),
                   )
                   .map((d) => {
-                    const isSelected = !!trip.motoristas.find(
-                      (x) => x.id === d.id,
-                    );
+                    const isSelected = !!trip.motoristas.find((x) => x.id === d.id);
 
                     const handleToggleDriver = () => {
                       if (isSelected) {
                         setTrip((prev) => ({
                           ...prev,
-                          motoristas: prev.motoristas.filter(
-                            (x) => x.id !== d.id,
-                          ),
+                          motoristas: prev.motoristas.filter((x) => x.id !== d.id),
                         }));
                       } else {
                         // If no principal driver, first one becomes principal
-                        const noPrincipal = !trip.motoristas.some(
-                          (x) => x.isPrincipal,
-                        );
+                        const noPrincipal = !trip.motoristas.some((x) => x.isPrincipal);
                         setTrip((prev) => ({
                           ...prev,
-                          motoristas: [
-                            ...prev.motoristas,
-                            { ...d, isPrincipal: noPrincipal },
-                          ],
+                          motoristas: [...prev.motoristas, { ...d, isPrincipal: noPrincipal }],
                         }));
                       }
                     };
@@ -3723,9 +3563,7 @@ startxref
                         onClick={handleToggleDriver}
                         className={cn(
                           "flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer bg-white hover:border-primary/40",
-                          isSelected
-                            ? "border-primary bg-primary/2"
-                            : "border-gray-105",
+                          isSelected ? "border-primary bg-primary/2" : "border-gray-105",
                         )}
                       >
                         <div>
@@ -3741,9 +3579,7 @@ startxref
                         <div
                           className={cn(
                             "w-5 h-5 rounded-lg border flex items-center justify-center transition-all",
-                            isSelected
-                              ? "bg-primary border-primary text-white"
-                              : "border-gray-300 bg-white",
+                            isSelected ? "bg-primary border-primary text-white" : "border-gray-300 bg-white",
                           )}
                         >
                           {isSelected && (
@@ -3860,8 +3696,7 @@ startxref
                       Observações do {selectedDocForObs.tipo}
                     </h3>
                     <p className="text-[10px] text-gray-500 font-medium">
-                      Nº {selectedDocForObs.numero || "-"} | Situação:{" "}
-                      {getNormalizeStatus(selectedDocForObs.status)}
+                      Nº {selectedDocForObs.numero || '-'} | Situação: {getNormalizeStatus(selectedDocForObs.status)}
                     </p>
                   </div>
                 </div>
@@ -3875,12 +3710,9 @@ startxref
 
               {/* Informações Gerais */}
               <div className="bg-gray-50 p-3 rounded-lg space-y-1 text-left">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">
-                  Observação Inicial
-                </span>
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">Observação Inicial</span>
                 <p className="text-[11px] text-gray-700 font-medium leading-relaxed">
-                  {selectedDocForObs.observacao ||
-                    "Nenhuma observação geral lançada para este documento fiscal."}
+                  {selectedDocForObs.observacao || "Nenhuma observação geral lançada para este documento fiscal."}
                 </p>
               </div>
 
@@ -3889,7 +3721,7 @@ startxref
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">
                   Grid de Rejeições / Ocorrências
                 </span>
-
+                
                 <div className="border border-gray-100 rounded-xl overflow-hidden bg-white">
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -3900,34 +3732,24 @@ startxref
                       </tr>
                     </thead>
                     <tbody>
-                      {getNormalizeStatus(selectedDocForObs.status) ===
-                      "REJEITADO" ? (
-                        selectedDocForObs.motivosRejeicao &&
-                        selectedDocForObs.motivosRejeicao.length > 0 ? (
-                          selectedDocForObs.motivosRejeicao.map(
-                            (motivo, idx) => (
-                              <tr
-                                key={idx}
-                                className="border-b border-gray-50 last:border-0 hover:bg-gray-50/40"
-                              >
-                                <td className="px-3 py-2 text-[10px] text-red-600 font-semibold leading-normal">
-                                  <div className="flex items-start gap-1.5">
-                                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-red-500 mt-0.5" />
-                                    <span>{motivo}</span>
-                                  </div>
-                                </td>
-                              </tr>
-                            ),
-                          )
+                      {getNormalizeStatus(selectedDocForObs.status) === 'REJEITADO' ? (
+                        (selectedDocForObs.motivosRejeicao && selectedDocForObs.motivosRejeicao.length > 0) ? (
+                          selectedDocForObs.motivosRejeicao.map((motivo, idx) => (
+                            <tr key={idx} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/40">
+                              <td className="px-3 py-2 text-[10px] text-red-600 font-semibold leading-normal">
+                                <div className="flex items-start gap-1.5">
+                                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-red-500 mt-0.5" />
+                                  <span>{motivo}</span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
                         ) : (
                           <tr className="border-b border-gray-50 last:border-0">
                             <td className="px-3 py-2 text-[10px] text-red-600 font-semibold leading-normal">
                               <div className="flex items-start gap-1.5">
                                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-red-500 mt-0.5" />
-                                <span>
-                                  {selectedDocForObs.motivoRejeicao ||
-                                    "Inconsistência cadastral na validação junto à SEFAZ."}
-                                </span>
+                                <span>{selectedDocForObs.motivoRejeicao || "Inconsistência cadastral na validação junto à SEFAZ."}</span>
                               </div>
                             </td>
                           </tr>
@@ -3937,8 +3759,7 @@ startxref
                           <td className="px-3 py-5 text-center text-[10px] text-green-600 font-semibold italic">
                             <div className="flex items-center justify-center gap-1.5 select-none">
                               <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-ping" />
-                              Nenhum motivo de rejeição registrado para este
-                              documento. Situação regular!
+                              Nenhum motivo de rejeição registrado para este documento. Situação regular!
                             </div>
                           </td>
                         </tr>
@@ -4075,7 +3896,7 @@ startxref
                 </div>
 
                 {/* Caso seja rejeitado, preencher os motivos */}
-                {ciotStatus === "REJEITADO" && (
+                {ciotStatus === 'REJEITADO' && (
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-red-400 uppercase tracking-widest block">
                       Motivo(s) da Rejeição *
@@ -4148,8 +3969,7 @@ startxref
                   CIOT preenchido com sucesso
                 </h3>
                 <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
-                  Os dados financeiros e fiscais do CIOT foram vinculados com
-                  sucesso à documentação da viagem.
+                  Os dados financeiros e fiscais do CIOT foram vinculados com sucesso à documentação da viagem.
                 </p>
               </div>
               <button
@@ -4186,8 +4006,7 @@ startxref
                   Viagem salva com sucesso
                 </h3>
                 <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
-                  Os dados da viagem foram salvos com sucesso e armazenados no
-                  banco de dados.
+                  Os dados da viagem foram salvos com sucesso e armazenados no banco de dados.
                 </p>
               </div>
               <button

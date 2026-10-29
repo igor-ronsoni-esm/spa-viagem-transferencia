@@ -4,26 +4,27 @@ import { Clipboard } from "lucide-react";
 import { useContext } from "react";
 import { ViagemContext } from "../../context/ViagemContext";
 import { useFormContext } from "react-hook-form";
-import { cn } from "@/src/modules/utils/css.util";
+import type { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
+import { cn } from "@modules/utils/css.util";
 import {
   TipoTransferenciaEnum,
   TipoViagemEnum,
-} from "@/src/modules/domain/viagem/schemas/viagem.schema";
+} from "@modules/domain/viagem/schemas/viagem.schema";
 import {
   EXTRA_TIPO_TRADUCAO,
   TIPO_TRANSFERENCIA_TRADUCAO,
   TIPO_VIAGEM_TRADUCAO,
-} from "@/src/app/constants";
+} from "@app/constants";
 
 export default function DadosBasicos() {
   const { modoEdicao } = useContext(ViagemContext);
-  const { register, watch } = useFormContext();
+  const { register, watch } = useFormContext<ViagemOutput>();
 
   const podeEditarTipoViagem = modoEdicao;
   const podeEditarTipoTransferencia = modoEdicao;
 
   return (
-    <div className="flex flex-1 flex-col bg-white rounded-xl border border-gray-100 p-4 shadow-xs space-y-4 w-full">
+    <div className="flex flex-col bg-white rounded-xl border border-gray-100 p-4 shadow-xs space-y-4 w-full h-auto">
       <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
         <Clipboard className="w-4 h-4 text-primary" />
         <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider">

@@ -1,5 +1,18 @@
-import { OcorrenciaViagem, TipoTransferenciaEnum, TipoViagemEnum } from '@modules/domain/viagem/schemas/viagem.schema';
+import { OcorrenciaViagemEnum, StatusDocumentoFiscalEnum, TipoTransferenciaEnum, TipoViagemEnum } from '@modules/domain/viagem/schemas/viagem.schema';
 import { Empresa } from './types';
+
+type DefinicaoTraducao = {
+  label: string;
+}
+
+type DefinicaoConfig = {
+  label: string;
+  color: string;
+  text: string;
+}
+
+type Config = Record<string, DefinicaoConfig>;
+type Traducao = Record<string, DefinicaoTraducao>;
 
 export const COLORS = {
   primary: '#280070',
@@ -17,49 +30,6 @@ export enum ABAS_TELA_VIAGEM_ENUM {
   DOCUMENTOS_FISCAIS = 'DOCUMENTOS FISCAIS',
 }
 
-export const STATUS_TRADUCAO = {
-  [OcorrenciaViagem.COMPARTILHAMENTO_CANCELADO]: { label: 'Compartilhamento Cancelado' },
-  [OcorrenciaViagem.DISPONIBILIZACAO_VIAGEM_CANCELADA]: { label: 'Disponibilização Viagem Cancelada' },
-  [OcorrenciaViagem.INICIO_VIAGEM_CANCELADA]: { label: 'Início Viagem Cancelada' },
-  [OcorrenciaViagem.LIBERADO_CONTINGENCIA]: { label: 'Liberado Contingência' },
-  [OcorrenciaViagem.PRE_VIAGEM]: { label: 'Pré Viagem' },
-  [OcorrenciaViagem.RASTREAMENTO_AGUARDANDO_AGENDAMENTO]: { label: 'Rastreamento Aguardando Agendamento' },
-  [OcorrenciaViagem.RASTREAMENTO_AGUARDANDO_CANCELAMENTO]: { label: 'Rastreamento Aguardando Cancelamento' },
-  [OcorrenciaViagem.RASTREAMENTO_AGUARDANDO_FIM]: { label: 'Rastreamento Aguardando Fim' },
-  [OcorrenciaViagem.RASTREAMENTO_AGUARDANDO_INICIO]: { label: 'Rastreamento Aguardando Início' },
-  [OcorrenciaViagem.RASTREAMENTO_ERRO_AGENDAMENTO]: { label: 'Rastreamento Erro Agendamento' },
-  [OcorrenciaViagem.RASTREAMENTO_ERRO_CANCELAMENTO]: { label: 'Rastreamento Erro Cancelamento' },
-  [OcorrenciaViagem.RASTREAMENTO_ERRO_FIM]: { label: 'Rastreamento Erro Fim' },
-  [OcorrenciaViagem.RASTREAMENTO_ERRO_INICIO]: { label: 'Rastreamento Erro Início' },
-  [OcorrenciaViagem.RASTREAMENTO_VIAGEM_AGENDADA]: { label: 'Rastreamento Viagem Agendada' },
-  [OcorrenciaViagem.RASTREAMENTO_VIAGEM_CANCELADA]: { label: 'Rastreamento Viagem Cancelada' },
-  [OcorrenciaViagem.RASTREAMENTO_VIAGEM_FINALIZADA]: { label: 'Rastreamento Viagem Finalizada' },
-  [OcorrenciaViagem.RASTREAMENTO_VIAGEM_INICIADA]: { label: 'Rastreamento Viagem Iniciada' },
-  [OcorrenciaViagem.TROCA_MOTORISTA_FINALIZADA]: { label: 'Troca Motorista Finalizada' },
-  [OcorrenciaViagem.TROCA_MOTORISTA_INICIADA]: { label: 'Troca Motorista Iniciada' },
-  [OcorrenciaViagem.VIAGEM_COMPARTILHADA]: { label: 'Viagem Compartilhada' },
-  [OcorrenciaViagem.AGUARDANDO_AUTORIZACAO]: { label: 'Aguardando Autorização' },
-  [OcorrenciaViagem.REJEICAO_AUTORIZACAO]: { label: 'Autorização Rejeitada' },
-  [OcorrenciaViagem.VIAGEM_DISPONIBILIZADA]: { label: 'Disponibilizada' },
-  [OcorrenciaViagem.VIAGEM_INICIADA]: { label: 'Iniciada' },
-  [OcorrenciaViagem.FIM_DE_VIAGEM]: { label: 'Finalizada' },
-  [OcorrenciaViagem.VIAGEM_CANCELADA]: { label: 'Cancelada' },
-  [OcorrenciaViagem.PROCESSAMENTO_DOCUMENTOS_TERCEIRO]: { label: 'Processamento Docs Terceiro' },
-  SEM_STATUS: { label: 'Não Gerada' },
-  DESCONHECIDO: { label: 'Status Desconhecido' },
-};
-
-export const TIPO_VIAGEM_TRADUCAO = {
-  [TipoViagemEnum.TRANSFERENCIA]: { label: 'Transferência' },
-  [TipoViagemEnum.VAZIO]: { label: 'Vazio' },
-};
-
-export const TIPO_TRANSFERENCIA_TRADUCAO = {
-  [TipoTransferenciaEnum.ESCALA]: { label: 'Escala' },
-  [TipoTransferenciaEnum.EXTRA]: { label: 'Extra' },
-  [TipoTransferenciaEnum.ROTA_ALTERNATIVA]: { label: 'Rota Alternativa' },
-};
-
 export const EXTRA_TIPO_TRADUCAO = {
   1: "Aproveitamento",
   2: "Demanda Excedente de Carga",
@@ -69,17 +39,91 @@ export const EXTRA_TIPO_TRADUCAO = {
   6: "Transferência de Veículo",
 } as const;
 
-export const STATUS_CONFIG = {
-  [OcorrenciaViagem.PRE_VIAGEM]: { label: STATUS_TRADUCAO[OcorrenciaViagem.PRE_VIAGEM].label, color: 'bg-blue-100', text: 'text-blue-700' },
-  [OcorrenciaViagem.AGUARDANDO_AUTORIZACAO]: { label: STATUS_TRADUCAO[OcorrenciaViagem.AGUARDANDO_AUTORIZACAO].label, color: 'bg-orange-100', text: 'text-orange-700' },
-  [OcorrenciaViagem.REJEICAO_AUTORIZACAO]: { label: STATUS_TRADUCAO[OcorrenciaViagem.REJEICAO_AUTORIZACAO].label, color: 'bg-red-100', text: 'text-red-700' },
-  [OcorrenciaViagem.VIAGEM_DISPONIBILIZADA]: { label: STATUS_TRADUCAO[OcorrenciaViagem.VIAGEM_DISPONIBILIZADA].label, color: 'bg-green-100', text: 'text-green-700' },
-  [OcorrenciaViagem.VIAGEM_INICIADA]: { label: STATUS_TRADUCAO[OcorrenciaViagem.VIAGEM_INICIADA].label, color: 'bg-green-700', text: 'text-white' },
-  [OcorrenciaViagem.FIM_DE_VIAGEM]: { label: STATUS_TRADUCAO[OcorrenciaViagem.FIM_DE_VIAGEM].label, color: 'bg-gray-700', text: 'text-white' },
-  [OcorrenciaViagem.VIAGEM_CANCELADA]: { label: STATUS_TRADUCAO[OcorrenciaViagem.VIAGEM_CANCELADA].label, color: 'bg-red-700', text: 'text-white' },
-  [OcorrenciaViagem.PROCESSAMENTO_DOCUMENTOS_TERCEIRO]: { label: STATUS_TRADUCAO[OcorrenciaViagem.PROCESSAMENTO_DOCUMENTOS_TERCEIRO].label, color: 'bg-orange-100', text: 'text-orange-700' },
+export const STATUS_TRADUCAO: Traducao = {
+  [OcorrenciaViagemEnum.COMPARTILHAMENTO_CANCELADO]: { label: 'Compartilhamento Cancelado' },
+  [OcorrenciaViagemEnum.DISPONIBILIZACAO_VIAGEM_CANCELADA]: { label: 'Disponibilização Viagem Cancelada' },
+  [OcorrenciaViagemEnum.INICIO_VIAGEM_CANCELADA]: { label: 'Início Viagem Cancelada' },
+  [OcorrenciaViagemEnum.LIBERADO_CONTINGENCIA]: { label: 'Liberado Contingência' },
+  [OcorrenciaViagemEnum.PRE_VIAGEM]: { label: 'Pré Viagem' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_AGUARDANDO_AGENDAMENTO]: { label: 'Rastreamento Aguardando Agendamento' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_AGUARDANDO_CANCELAMENTO]: { label: 'Rastreamento Aguardando Cancelamento' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_AGUARDANDO_FIM]: { label: 'Rastreamento Aguardando Fim' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_AGUARDANDO_INICIO]: { label: 'Rastreamento Aguardando Início' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_ERRO_AGENDAMENTO]: { label: 'Rastreamento Erro Agendamento' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_ERRO_CANCELAMENTO]: { label: 'Rastreamento Erro Cancelamento' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_ERRO_FIM]: { label: 'Rastreamento Erro Fim' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_ERRO_INICIO]: { label: 'Rastreamento Erro Início' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_VIAGEM_AGENDADA]: { label: 'Rastreamento Viagem Agendada' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_VIAGEM_CANCELADA]: { label: 'Rastreamento Viagem Cancelada' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_VIAGEM_FINALIZADA]: { label: 'Rastreamento Viagem Finalizada' },
+  [OcorrenciaViagemEnum.RASTREAMENTO_VIAGEM_INICIADA]: { label: 'Rastreamento Viagem Iniciada' },
+  [OcorrenciaViagemEnum.TROCA_MOTORISTA_FINALIZADA]: { label: 'Troca Motorista Finalizada' },
+  [OcorrenciaViagemEnum.TROCA_MOTORISTA_INICIADA]: { label: 'Troca Motorista Iniciada' },
+  [OcorrenciaViagemEnum.VIAGEM_COMPARTILHADA]: { label: 'Viagem Compartilhada' },
+  [OcorrenciaViagemEnum.AGUARDANDO_AUTORIZACAO]: { label: 'Aguardando Autorização' },
+  [OcorrenciaViagemEnum.REJEICAO_AUTORIZACAO]: { label: 'Autorização Rejeitada' },
+  [OcorrenciaViagemEnum.VIAGEM_DISPONIBILIZADA]: { label: 'Disponibilizada' },
+  [OcorrenciaViagemEnum.VIAGEM_INICIADA]: { label: 'Iniciada' },
+  [OcorrenciaViagemEnum.FIM_DE_VIAGEM]: { label: 'Finalizada' },
+  [OcorrenciaViagemEnum.VIAGEM_CANCELADA]: { label: 'Cancelada' },
+  [OcorrenciaViagemEnum.PROCESSAMENTO_DOCUMENTOS_TERCEIRO]: { label: 'Processamento Docs Terceiro' },
+  SEM_STATUS: { label: 'Não Gerada' },
+  DESCONHECIDO: { label: 'Status Desconhecido' },
+};
+
+export const TIPO_VIAGEM_TRADUCAO: Traducao = {
+  [TipoViagemEnum.TRANSFERENCIA]: { label: 'Transferência' },
+  [TipoViagemEnum.VAZIO]: { label: 'Vazio' },
+};
+
+export const TIPO_TRANSFERENCIA_TRADUCAO: Traducao = {
+  [TipoTransferenciaEnum.ESCALA]: { label: 'Escala' },
+  [TipoTransferenciaEnum.EXTRA]: { label: 'Extra' },
+  [TipoTransferenciaEnum.ROTA_ALTERNATIVA]: { label: 'Rota Alternativa' },
+};
+
+export const DOCUMENTO_FISCAL_STATUS_TRADUCAO: Traducao = {
+  [StatusDocumentoFiscalEnum.AGUARDANDO_AUTORIZACAO]: { label: 'Aguardando Autorização' },
+  [StatusDocumentoFiscalEnum.AGUARDANDO_CANCELAMENTO]: { label: 'Aguardando Cancelamento' },
+  [StatusDocumentoFiscalEnum.AGUARDANDO_ENCERRAMENTO]: { label: 'Aguardando Encerramento' },
+  [StatusDocumentoFiscalEnum.AUTORIZADO]: { label: 'Autorizado' },
+  [StatusDocumentoFiscalEnum.CANCELADO]: { label: 'Cancelado' },
+  [StatusDocumentoFiscalEnum.ENCERRADO]: { label: 'Encerrado' },
+  [StatusDocumentoFiscalEnum.REJEITADO]: { label: 'Rejeitado' },
+  [StatusDocumentoFiscalEnum.NAO_ELEGIVEL]: { label: 'Não Elegível' },
+  [StatusDocumentoFiscalEnum.PENDENTE]: { label: 'Pendente' },
+  [StatusDocumentoFiscalEnum.COMPRADO]: { label: 'Comprado' },
+  [StatusDocumentoFiscalEnum.ERRO]: { label: 'Erro' },
+  [StatusDocumentoFiscalEnum.DESCONHECIDO]: { label: 'Status Desconhecido' },
+  SEM_STATUS: { label: 'Sem Status' },
+};
+
+export const STATUS_CONFIG: Config = {
+  [OcorrenciaViagemEnum.PRE_VIAGEM]: { label: STATUS_TRADUCAO[OcorrenciaViagemEnum.PRE_VIAGEM].label, color: 'bg-blue-100', text: 'text-blue-700' },
+  [OcorrenciaViagemEnum.AGUARDANDO_AUTORIZACAO]: { label: STATUS_TRADUCAO[OcorrenciaViagemEnum.AGUARDANDO_AUTORIZACAO].label, color: 'bg-orange-100', text: 'text-orange-700' },
+  [OcorrenciaViagemEnum.REJEICAO_AUTORIZACAO]: { label: STATUS_TRADUCAO[OcorrenciaViagemEnum.REJEICAO_AUTORIZACAO].label, color: 'bg-red-100', text: 'text-red-700' },
+  [OcorrenciaViagemEnum.VIAGEM_DISPONIBILIZADA]: { label: STATUS_TRADUCAO[OcorrenciaViagemEnum.VIAGEM_DISPONIBILIZADA].label, color: 'bg-green-100', text: 'text-green-700' },
+  [OcorrenciaViagemEnum.VIAGEM_INICIADA]: { label: STATUS_TRADUCAO[OcorrenciaViagemEnum.VIAGEM_INICIADA].label, color: 'bg-green-700', text: 'text-white' },
+  [OcorrenciaViagemEnum.FIM_DE_VIAGEM]: { label: STATUS_TRADUCAO[OcorrenciaViagemEnum.FIM_DE_VIAGEM].label, color: 'bg-gray-700', text: 'text-white' },
+  [OcorrenciaViagemEnum.VIAGEM_CANCELADA]: { label: STATUS_TRADUCAO[OcorrenciaViagemEnum.VIAGEM_CANCELADA].label, color: 'bg-red-700', text: 'text-white' },
+  [OcorrenciaViagemEnum.PROCESSAMENTO_DOCUMENTOS_TERCEIRO]: { label: STATUS_TRADUCAO[OcorrenciaViagemEnum.PROCESSAMENTO_DOCUMENTOS_TERCEIRO].label, color: 'bg-orange-100', text: 'text-orange-700' },
   SEM_STATUS: { label: STATUS_TRADUCAO.SEM_STATUS.label, color: 'bg-gray-200', text: 'text-gray-500' },
   DESCONHECIDO: { label: STATUS_TRADUCAO.DESCONHECIDO.label, color: 'bg-gray-200', text: 'text-gray-500' },
+};
+
+export const DOCUMENTO_FISCAL_STATUS_CONFIG: Config = {
+  [StatusDocumentoFiscalEnum.AGUARDANDO_AUTORIZACAO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.AGUARDANDO_AUTORIZACAO].label, color: 'bg-blue-50', text: 'text-blue-600' },
+  [StatusDocumentoFiscalEnum.AGUARDANDO_CANCELAMENTO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.AGUARDANDO_CANCELAMENTO].label, color: 'bg-blue-50', text: 'text-blue-600' },
+  [StatusDocumentoFiscalEnum.AGUARDANDO_ENCERRAMENTO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.AGUARDANDO_ENCERRAMENTO].label, color: 'bg-blue-50', text: 'text-blue-600' },
+  [StatusDocumentoFiscalEnum.AUTORIZADO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.AUTORIZADO].label, color: 'bg-green-50', text: 'text-green-600' },
+  [StatusDocumentoFiscalEnum.ENCERRADO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.ENCERRADO].label, color: 'bg-gray-100', text: 'text-gray-600' },
+  [StatusDocumentoFiscalEnum.CANCELADO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.CANCELADO].label, color: 'bg-red-50', text: 'text-red-600' },
+  [StatusDocumentoFiscalEnum.REJEITADO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.REJEITADO].label, color: 'bg-orange-50', text: 'text-orange-600' },
+  [StatusDocumentoFiscalEnum.PENDENTE]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.PENDENTE].label, color: 'bg-blue-50', text: 'text-blue-600' },
+  [StatusDocumentoFiscalEnum.COMPRADO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.COMPRADO].label, color: 'bg-blue-50', text: 'text-blue-600' },
+  [StatusDocumentoFiscalEnum.ERRO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.ERRO].label, color: 'bg-red-50', text: 'text-red-600' },
+  [StatusDocumentoFiscalEnum.NAO_ELEGIVEL]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.NAO_ELEGIVEL].label, color: 'bg-gray-100', text: 'text-gray-600' },
+  [StatusDocumentoFiscalEnum.DESCONHECIDO]: { label: DOCUMENTO_FISCAL_STATUS_TRADUCAO[StatusDocumentoFiscalEnum.DESCONHECIDO].label, color: 'bg-gray-200', text: 'text-gray-500' },
 };
 
 export const FISCAL_STATUS_CONFIG: Record<string, { label: string; color: string; text: string }> = {

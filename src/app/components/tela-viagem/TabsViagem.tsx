@@ -1,17 +1,19 @@
 "use client";
 
 import {
-  OcorrenciaViagem,
-  OcorrenciaViagemOutput,
+  OcorrenciaViagemEnum,
+  OcorrenciaViagemEnumOutput,
   TipoViagemEnum,
   ViagemOutput,
 } from "@modules/domain/viagem/schemas/viagem.schema";
 import { Edit, Save, X, Play, RefreshCw, Trash2 } from "lucide-react";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ViagemContext } from "./context/ViagemContext";
 import { cn } from "@modules/utils/css.util";
 import { Tooltip } from "@mui/material";
 import { ABAS_TELA_VIAGEM_ENUM } from "../../constants";
+import CancelarEdicaoModal from "./modals/CancelarEdicaoModal";
+import { useSearchParams } from "next/navigation";
 
 type Props = {
   viagem: ViagemOutput;
@@ -30,22 +32,35 @@ export default function TabsViagem({ viagem }: Readonly<Props>) {
     handleCancelarEdicao,
     handleIniciarManualmente,
   } = useContext(ViagemContext);
+  const searchParams = useSearchParams();
 
-  const STATUS_PERMITE_CANCELAR: OcorrenciaViagemOutput[] = [
-    OcorrenciaViagem.PRE_VIAGEM,
-    OcorrenciaViagem.VIAGEM_DISPONIBILIZADA,
-    OcorrenciaViagem.VIAGEM_INICIADA,
+  const [cancelarModalOpen, setCancelarModalOpen] = useState<boolean>(false);
+
+  const STATUS_PERMITE_CANCELAR: OcorrenciaViagemEnumOutput[] = [
+    OcorrenciaViagemEnum.PRE_VIAGEM,
+    OcorrenciaViagemEnum.VIAGEM_DISPONIBILIZADA,
+    OcorrenciaViagemEnum.VIAGEM_INICIADA,
   ];
 
-  const STATUS_PERMITE_INICIAR: OcorrenciaViagemOutput[] = [OcorrenciaViagem.VIAGEM_DISPONIBILIZADA];
+  const STATUS_PERMITE_INICIAR: OcorrenciaViagemEnumOutput[] = [OcorrenciaViagemEnum.VIAGEM_DISPONIBILIZADA];
 
   const viagemEstaGerada =
     viagem.codigo !== null &&
     viagem.codigo !== undefined &&
     viagem.codigo !== 0;
-  const podeEditar = viagem.status === OcorrenciaViagem.PRE_VIAGEM || viagem.status === null;
+  const podeEditar = viagem.status === OcorrenciaViagemEnum.PRE_VIAGEM || viagem.status === null;
   const podeCancelarViagem = STATUS_PERMITE_CANCELAR.includes(viagem.status);
   const podeIniciarManualmente = STATUS_PERMITE_INICIAR.includes(viagem.status);
+
+  const validarModoEdicao = async () => {
+    if ((await searchParams).get("modoEdicao") === "true" && !modoEdicao) {
+      handleCancelarEdicao();
+    }
+  }
+  
+  useEffect(() => {
+    validarModoEdicao();
+  }, []);
 
   return (
     <div className="bg-gray-50 border-b border-gray-100 px-4 pt-2 flex flex-col gap-2 shrink-0">
@@ -61,7 +76,7 @@ export default function TabsViagem({ viagem }: Readonly<Props>) {
             </button>
             <button
               type="reset"
-              onClick={handleCancelarEdicao}
+              onClick={() => setCancelarModalOpen(true)}
               disabled={loading}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-500 text-white rounded-md text-[10px] font-bold hover:bg-gray-600 disabled:opacity-50 cursor-pointer uppercase shadow-xs"
             >
@@ -188,6 +203,12 @@ export default function TabsViagem({ viagem }: Readonly<Props>) {
           );
         })}
       </div>
+      <CancelarEdicaoModal
+        open={cancelarModalOpen}
+        codigoViagem={viagem.codigo ?? null}
+        handleCancelar={() => setCancelarModalOpen(false)}
+        handleConfirmar={() => { handleCancelarEdicao(); setCancelarModalOpen(false); }}
+      />
     </div>
   );
 }

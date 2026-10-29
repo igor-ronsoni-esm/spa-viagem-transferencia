@@ -12,7 +12,8 @@ export default function Header({ viagem }: { viagem: any }) {
     const params = new URLSearchParams(searchParams.toString());
 
     params.delete("viagem");
-
+    params.delete("modoEdicao");
+    
     const query = params.toString();
     const url = query ? `?${query}` : "";
 
