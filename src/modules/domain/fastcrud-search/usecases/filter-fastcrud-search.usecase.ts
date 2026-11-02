@@ -1,3 +1,5 @@
+import ResponseFastcrudEntity from "../entities/response-fastcrud.entity";
+
 export type FiltroFastcrudSearchEntity = {
   field: string;
   operation: string;
@@ -12,5 +14,5 @@ export type RequestFiltroFastcrudSearchEntity = {
 };
 
 export default interface FilterFastcrudSearchUseCase {
-  execute(body: RequestFiltroFastcrudSearchEntity): Promise<unknown>;
+  execute(body: RequestFiltroFastcrudSearchEntity): Promise<ResponseFastcrudEntity>;
 }

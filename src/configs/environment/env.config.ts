@@ -9,8 +9,8 @@ export default class EnvConfiguration {
   public sentry_host: string;
 
   public api_fastcrud_search: ClientEnvConfig;
-  public api_query: ClientEnvConfig;
   public api_viagem_transferencia: ClientEnvConfig;
+  public api_empresas: ClientEnvConfig;
 
   public help: ClientEnvConfig;
 
@@ -19,20 +19,18 @@ export default class EnvConfiguration {
     this.environment = process.env.ENVIRONMENT ?? "";
     this.secret = process.env.AUTH_SECRET ?? "";
     this.sentry_host = process.env.SENTRY_DSN!!;
+    this.help = { host: process.env.HELP_HOST ?? "" };
     
     this.api_fastcrud_search = {
       host: process.env.API_FASTCRUD_SEARCH_HOST ?? "",
+      secret: process.env.API_FASTCRUD_SEARCH_SECRET ?? ""
     };
-    this.api_query = {
-      host: process.env.API_QUERY_HOST ?? "",
-    };
-    this.help = {
-      host: process.env.HELP_HOST ?? "",
-    };
+    
     this.api_viagem_transferencia = {
       host: process.env.API_VIAGEM_TRANSFERENCIA_HOST ?? "",
       secret: process.env.API_VIAGEM_TRANSFERENCIA_SECRET ?? "",
     };
+    this.api_empresas = { host: process.env.API_EMPRESAS_HOST ?? "" };
   }
 
   public static get(): EnvConfiguration {

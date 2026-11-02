@@ -22,6 +22,7 @@ import {
   SECTION_TYPES,
   COLORS,
   FISCAL_STATUS_CONFIG,
+  DEFAULT_COMPANIES,
 } from "../constants";
 import { cn } from "../lib/utils";
 import {
@@ -128,6 +129,70 @@ export function TripDetail({
   const [driverSearch, setDriverSearch] = useState("");
   const [vehicleSearch, setVehicleSearch] = useState("");
   const [showTrackingInfo, setShowTrackingInfo] = useState(false);
+  const [isDescarregamentosMinimized, setIsDescarregamentosMinimized] = useState(false);
+  const [minimizedDescarregamentos, setMinimizedDescarregamentos] = useState<Set<string>>(new Set());
+
+  const toggleDescarregamentoMinimization = (idOrKey: string) => {
+    setMinimizedDescarregamentos(prev => {
+      const next = new Set(prev);
+      if (next.has(idOrKey)) next.delete(idOrKey);
+      else next.add(idOrKey);
+      return next;
+    });
+  };
+
+  const handleAddDescarregamento = () => {
+    if (!canEditFields) {
+      alert("Clique em 'EDITAR VIAGEM' no topo para habilitar a adição de descarregamentos.");
+      return;
+    }
+    const newDesc = {
+      id: Math.random().toString(36).substring(2, 9),
+      situacao: 'Executa' as const,
+      empresaSigla: DEFAULT_COMPANIES[0]?.codigo || 'A',
+      empresaNome: DEFAULT_COMPANIES[0]?.nome || 'Porto Alegre',
+      empresaId: DEFAULT_COMPANIES[0]?.id,
+      tempoHora: 1,
+      tempoMinuto: 30,
+    };
+    setTrip(prev => ({
+      ...prev,
+      descarregamentos: [...(prev.descarregamentos || []), newDesc]
+    }));
+  };
+
+  const handleRemoveDescarregamento = (id: string) => {
+    if (!canEditFields) {
+      alert("Clique em 'EDITAR VIAGEM' no topo para habilitar a remoção de descarregamentos.");
+      return;
+    }
+    setTrip(prev => ({
+      ...prev,
+      descarregamentos: (prev.descarregamentos || []).filter(d => d.id !== id)
+    }));
+  };
+
+  const handleUpdateDescarregamento = (id: string, field: string, value: any) => {
+    if (!canEditFields) return;
+    setTrip(prev => ({
+      ...prev,
+      descarregamentos: (prev.descarregamentos || []).map(d => {
+        if (d.id === id) {
+          if (field === 'empresaSigla') {
+            const comp = DEFAULT_COMPANIES.find(c => c.codigo === value);
+            return {
+              ...d,
+              empresaSigla: value,
+              empresaNome: comp ? comp.nome : d.empresaNome,
+              empresaId: comp ? comp.id : d.empresaId,
+            };
+          }
+          return { ...d, [field]: value };
+        }
+        return d;
+      })
+    }));
+  };
 
   // Modals
   const [isLineModalOpen, setIsLineModalOpen] = useState(false);
@@ -1483,6 +1548,8 @@ startxref
       <div className="flex-1 overflow-y-auto p-4 bg-[#fcfcfc]">
         {activeTab === "content" && (
           <div className="space-y-6">
+            
+
             {/* Secao 1: Dados Basicos */}
             <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
@@ -2141,6 +2208,183 @@ startxref
 
         {activeTab === "ctes" && (
           <div className="space-y-4">
+            {/* Secao Descarregamentos (na parte superior, minimizavel) */}
+            <div className="bg-white rounded-xl border border-primary/20 p-4 shadow-sm space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                    <Truck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                      Descarregamentos da Viagem
+                      <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                        {(trip.descarregamentos || []).length}
+                      </span>
+                    </h3>
+                    <p className="text-[10px] text-gray-400 font-medium">
+                      Gerencie as paradas de descarregamento, situação e tempo de percurso
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {canEditFields && (
+                    <button
+                      type="button"
+                      onClick={handleAddDescarregamento}
+                      className="px-3 py-1.5 bg-primary text-white text-[10px] font-black uppercase rounded-lg hover:bg-primary-hover shadow-xs cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Adicionar Descarregamento
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsDescarregamentosMinimized(!isDescarregamentosMinimized)}
+                    className="px-2.5 py-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg text-[10px] font-black uppercase tracking-wider cursor-pointer transition-colors"
+                  >
+                    {isDescarregamentosMinimized ? "Expandir ▼" : "Minimizar ▲"}
+                  </button>
+                </div>
+              </div>
+
+              {!isDescarregamentosMinimized && (
+                <div className="space-y-3 pt-1">
+                  {(trip.descarregamentos || []).length === 0 ? (
+                    <div className="p-6 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                      <p className="text-xs text-gray-400 font-medium italic mb-2">
+                        Nenhum descarregamento cadastrado para esta viagem.
+                      </p>
+                      {canEditFields ? (
+                        <button
+                          type="button"
+                          onClick={handleAddDescarregamento}
+                          className="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-[10px] font-black uppercase tracking-wider cursor-pointer inline-flex items-center gap-1.5"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Incluir primeiro descarregamento
+                        </button>
+                      ) : (
+                        <p className="text-[10px] text-amber-600 font-semibold">
+                          Clique em "EDITAR VIAGEM" no topo para poder incluir descarregamentos.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-100">
+                            <th className="px-3 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest w-[20%]">
+                              Situação
+                            </th>
+                            <th className="px-3 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest w-[35%]">
+                              Empresa (Sigla - Nome)
+                            </th>
+                            <th className="px-3 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest w-[25%]">
+                              Tempo do Percurso
+                            </th>
+                            <th className="px-3 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest w-[20%] text-right pr-4">
+                              Ações
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {(trip.descarregamentos || []).map((desc) => (
+                            <tr key={desc.id} className="hover:bg-gray-50/50 transition-colors">
+                              {/* Situação */}
+                              <td className="px-3 py-2.5 align-middle">
+                                <select
+                                  disabled={!canEditFields}
+                                  value={desc.situacao}
+                                  onChange={(e) => handleUpdateDescarregamento(desc.id, 'situacao', e.target.value)}
+                                  className={cn(
+                                    "px-2 py-1 rounded-lg text-[10px] font-black uppercase outline-none transition-all",
+                                    desc.situacao === 'Executa'
+                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                      : "bg-gray-100 text-gray-600 border border-gray-200",
+                                    !canEditFields && "opacity-70 cursor-not-allowed pointer-events-none"
+                                  )}
+                                >
+                                  <option value="Executa">Executa</option>
+                                  <option value="Não executa">Não executa</option>
+                                </select>
+                              </td>
+
+                              {/* Empresa (Sigla - Nome) */}
+                              <td className="px-3 py-2.5 align-middle">
+                                <select
+                                  disabled={!canEditFields}
+                                  value={desc.empresaSigla || ""}
+                                  onChange={(e) => handleUpdateDescarregamento(desc.id, 'empresaSigla', e.target.value)}
+                                  className={cn(
+                                    "w-full bg-white border border-gray-200 rounded-lg p-1.5 text-xs text-gray-800 font-bold outline-none focus:ring-2 focus:ring-primary/20",
+                                    !canEditFields && "bg-gray-50 text-gray-500 cursor-not-allowed pointer-events-none"
+                                  )}
+                                >
+                                  <option value="">Selecione a empresa...</option>
+                                  {DEFAULT_COMPANIES.map((comp) => (
+                                    <option key={comp.id} value={comp.codigo}>
+                                      {comp.codigo} - {comp.nome} ({comp.label})
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+
+                              {/* Tempo do Percurso (Hora e Minuto) */}
+                              <td className="px-3 py-2.5 align-middle">
+                                <div className="flex items-center gap-1.5">
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="99"
+                                      disabled={!canEditFields}
+                                      value={desc.tempoHora ?? 1}
+                                      onChange={(e) => handleUpdateDescarregamento(desc.id, 'tempoHora', parseInt(e.target.value) || 0)}
+                                      className="w-12 bg-white border border-gray-200 rounded-lg p-1 text-xs text-center font-bold outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-50"
+                                    />
+                                    <span className="text-[10px] font-bold text-gray-500">h</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="59"
+                                      disabled={!canEditFields}
+                                      value={desc.tempoMinuto ?? 0}
+                                      onChange={(e) => handleUpdateDescarregamento(desc.id, 'tempoMinuto', parseInt(e.target.value) || 0)}
+                                      className="w-12 bg-white border border-gray-200 rounded-lg p-1 text-xs text-center font-bold outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-gray-50"
+                                    />
+                                    <span className="text-[10px] font-bold text-gray-500">min</span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Ações */}
+                              <td className="px-3 py-2.5 text-right align-middle pr-4">
+                                {canEditFields ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveDescarregamento(desc.id)}
+                                    className="p-1 hover:bg-red-50 text-red-500 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1 text-[10px] font-black uppercase"
+                                    title="Remover descarregamento"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" /> Remover
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] text-gray-400 italic">Somente leitura</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Feedback Alert */}
             {docFeedback && (
               <div
@@ -2351,189 +2595,245 @@ startxref
               )}
             </div>
 
-            {/* Listagem de Documentos da Viagem */}
-            <div className="space-y-2">
-              {(trip.controlesCarga || []).length === 0 ? (
-                <div className="py-12 px-4 text-center bg-white rounded-xl border border-gray-100 border-dashed space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mx-auto text-gray-400">
-                    <ClipboardList className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-xs font-black uppercase text-gray-700">
-                      Nenhum documento de carga vinculado à viagem
-                    </h4>
-                    <p className="text-[11px] text-gray-400 max-w-md mx-auto">
-                      {canEditFields
-                        ? "Utilize os botões de ação acima para adicionar todos os documentos da configuração da linha ou escolher documentos específicos da empresa."
-                        : "Clique no botão 'EDITAR VIAGEM' acima para habilitar as ações de adicionar ou vincular documentos."}
-                    </p>
-                  </div>
-                  {canEditFields && (
-                    <div className="flex justify-center gap-2 pt-2">
-                      <button
-                        type="button"
-                        onClick={handleAddAllLineDocuments}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white rounded-md text-[10px] font-bold hover:bg-emerald-700 cursor-pointer uppercase shadow-xs"
-                      >
-                        <FolderPlus className="w-3.5 h-3.5" /> Adicionar Todos da Linha
-                      </button>
-                      <button
-                        type="button"
-                        onClick={openImportModal}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-md text-[10px] font-bold hover:opacity-90 cursor-pointer uppercase shadow-xs"
-                      >
-                        <ListPlus className="w-3.5 h-3.5" /> Escolher Documentos
-                      </button>
+            {/* Listagem de Documentos da Viagem Agrupados por Descarregamento */}
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-primary" />
+                Documentos da Viagem Agrupados por Descarregamento
+              </h4>
+
+              {(() => {
+                const effectiveDescarregamentos = (trip.descarregamentos && trip.descarregamentos.length > 0)
+                  ? trip.descarregamentos
+                  : [{
+                      id: 'default-dest',
+                      situacao: 'Executa' as const,
+                      empresaSigla: trip.agenciaDestinoSigla || 'DEST',
+                      empresaNome: trip.empresaNome || DEFAULT_COMPANIES.find(c => c.codigo === trip.agenciaDestinoSigla)?.nome || 'Empresa Destino da Viagem',
+                      tempoHora: 1,
+                      tempoMinuto: 0
+                    }];
+
+                const allControles = trip.controlesCarga || [];
+
+                if (allControles.length === 0) {
+                  return (
+                    <div className="py-12 px-4 text-center bg-white rounded-xl border border-gray-100 border-dashed space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mx-auto text-gray-400">
+                        <ClipboardList className="w-6 h-6" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-black uppercase text-gray-700">
+                          Nenhum documento de carga vinculado à viagem
+                        </h4>
+                        <p className="text-[11px] text-gray-400 max-w-md mx-auto">
+                          {canEditFields
+                            ? "Utilize os botões de ação acima para adicionar todos os documentos da configuração da linha ou escolher documentos específicos da empresa."
+                            : "Clique no botão 'EDITAR VIAGEM' acima para habilitar as ações de adicionar ou vincular documentos."}
+                        </p>
+                      </div>
+                      {canEditFields && (
+                        <div className="flex justify-center gap-2 pt-2">
+                          <button
+                            type="button"
+                            onClick={handleAddAllLineDocuments}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white rounded-md text-[10px] font-bold hover:bg-emerald-700 cursor-pointer uppercase shadow-xs"
+                          >
+                            <FolderPlus className="w-3.5 h-3.5" /> Adicionar Todos da Linha
+                          </button>
+                          <button
+                            type="button"
+                            onClick={openImportModal}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-md text-[10px] font-bold hover:opacity-90 cursor-pointer uppercase shadow-xs"
+                          >
+                            <ListPlus className="w-3.5 h-3.5" /> Escolher Documentos
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {(trip.controlesCarga || []).map((controle) => {
-                    const isMarked = markedControleIds.has(controle.id || controle.chave);
-                    const isExpanded = expandedControles.has(controle.id || controle.chave);
-                    const isLineMatch =
-                      controle.origemSigla === trip.agenciaOrigemSigla &&
-                      controle.destinoSigla === trip.agenciaDestinoSigla;
-                    const totalValorControle = (controle.ctes || []).reduce(
-                      (s, c) => s + (c.valor || 0),
-                      0
-                    );
+                  );
+                }
 
-                    return (
-                      <div
-                        key={controle.id || controle.chave}
-                        className={cn(
-                          "bg-white rounded-xl border overflow-hidden shadow-xs transition-all",
-                          isMarked
-                            ? "border-red-300 bg-red-50/20 ring-1 ring-red-300"
-                            : "border-gray-100 hover:border-gray-200"
-                        )}
-                      >
-                        <div className="p-3 flex items-center justify-between gap-3 bg-gray-50/60 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center gap-3 min-w-0">
-                            {/* Checkbox de marcação para remoção */}
-                            {canEditFields && (
-                              <input
-                                type="checkbox"
-                                checked={isMarked}
-                                onChange={() => toggleMarkControle(controle.id || controle.chave)}
-                                className="w-4 h-4 rounded text-red-600 border-gray-300 focus:ring-red-500 cursor-pointer shrink-0"
-                                title="Marcar este documento para remoção"
-                              />
-                            )}
+                return effectiveDescarregamentos.map((desc, dIdx) => {
+                  const matchingControles = effectiveDescarregamentos.length === 1
+                    ? allControles
+                    : allControles.filter(c => c.destinoSigla === desc.empresaSigla);
 
-                            <div
-                              onClick={() => toggleControleExpansion(controle.id || controle.chave)}
-                              className="flex items-center gap-2.5 cursor-pointer min-w-0"
-                            >
-                              <ClipboardList className="w-4 h-4 text-primary shrink-0" />
-                              <div className="flex flex-col min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-[11px] font-black text-gray-800 font-mono tracking-tight truncate">
-                                    {controle.chave}
-                                  </span>
-                                  <span
-                                    className={cn(
-                                      "text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider",
-                                      isLineMatch
-                                        ? "bg-emerald-100 text-emerald-800"
-                                        : "bg-blue-100 text-blue-800"
-                                    )}
-                                  >
-                                    {controle.origemSigla} ➔ {controle.destinoSigla}
-                                  </span>
-                                  {isLineMatch && (
-                                    <span className="text-[8px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 px-1 rounded uppercase tracking-tighter">
-                                      Configuração da Linha
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-[9px] text-gray-400 font-medium mt-0.5">
-                                  {(controle.ctes || []).length} CT-e(s) • Total: R${" "}
-                                  {totalValorControle.toLocaleString("pt-BR", {
-                                    minimumFractionDigits: 2,
-                                  })}
-                                </span>
-                              </div>
-                            </div>
+                  const descarregamentoControles = (matchingControles.length === 0 && dIdx === 0) ? allControles : matchingControles;
+                  const descId = desc.id || `desc-${dIdx}`;
+                  const isDescMinimized = minimizedDescarregamentos.has(descId);
+
+                  return (
+                    <div key={descId} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs space-y-3 p-4">
+                      {/* Descarregamento Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-gray-100 bg-gray-50/70 p-3 rounded-lg">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-xs">
+                            {desc.empresaSigla || 'DEST'}
                           </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => toggleControleExpansion(controle.id || controle.chave)}
-                              className="p-1 hover:bg-gray-200 rounded text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
-                              title={isExpanded ? "Ocultar CT-es" : "Ver CT-es"}
-                            >
-                              {isExpanded ? (
-                                <ChevronUp className="w-4 h-4" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4" />
-                              )}
-                            </button>
-
-                            {canEditFields && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleRemoveSingleControle(controle.id, controle.chave)
-                                }
-                                className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
-                                title="Remover este documento da viagem"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
+                          <div>
+                            <span className="text-[11px] font-black text-gray-900 uppercase block">
+                              Descarregamento: {desc.empresaSigla} - {desc.empresaNome || 'Empresa Destino'}
+                            </span>
+                            <span className="text-[9px] text-gray-500 font-medium">
+                              Tempo do Percurso: {desc.tempoHora ?? 1}h {desc.tempoMinuto ?? 0}min
+                            </span>
                           </div>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            "px-2 py-0.5 rounded text-[9px] font-black uppercase",
+                            desc.situacao === 'Executa' ? "bg-emerald-100 text-emerald-800" : "bg-gray-200 text-gray-600"
+                          )}>
+                            {desc.situacao || 'Executa'}
+                          </span>
+                          <span className="text-[9px] font-bold bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
+                            {descarregamentoControles.length} Controle(s)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => toggleDescarregamentoMinimization(descId)}
+                            className="px-2.5 py-1 bg-gray-200/80 hover:bg-gray-300 rounded text-[9px] font-black uppercase text-gray-700 cursor-pointer transition-colors"
+                          >
+                            {isDescMinimized ? "Expandir Descarregamento ▼" : "Minimizar Descarregamento ▲"}
+                          </button>
+                        </div>
+                      </div>
 
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="p-3 pt-0 px-4 space-y-1 bg-white">
-                                <div className="h-[1px] bg-gray-50 mb-2" />
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">
-                                  Conhecimentos de Transporte (CT-es) vinculados
-                                </span>
-                                {(controle.ctes || []).map((cte, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0 group text-left"
-                                  >
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      <FileCheck className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                                      <div className="flex flex-col min-w-0">
-                                        <span className="text-[10px] font-bold text-gray-700 font-mono truncate">
-                                          {cte.chave}
-                                        </span>
-                                        <span className="text-[8px] text-gray-400 font-medium uppercase tracking-tighter truncate">
-                                          {cte.remetente} ➔ {cte.destinatario}
-                                        </span>
+                      {/* Controles and Conhecimentos (CTes) list */}
+                      {!isDescMinimized && (
+                        descarregamentoControles.length === 0 ? (
+                          <p className="text-[10px] text-gray-400 italic py-2 text-center">
+                            Nenhum controle de carga atribuído a este descarregamento.
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {descarregamentoControles.map((controle) => {
+                              const cIdOrKey = controle.id || controle.chave;
+                              const isMarked = markedControleIds.has(cIdOrKey);
+                              const isExpanded = expandedControles.has(cIdOrKey);
+
+                              return (
+                                <div key={cIdOrKey} className="border border-gray-100 rounded-lg p-3 bg-gray-50/30 space-y-2">
+                                  <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                                    <div className="flex items-center gap-2">
+                                      {canEditFields && (
+                                        <input
+                                          type="checkbox"
+                                          checked={isMarked}
+                                          onChange={() => toggleMarkControle(cIdOrKey)}
+                                          className="w-4 h-4 rounded text-red-600 border-gray-300 focus:ring-red-500 cursor-pointer"
+                                        />
+                                      )}
+                                      <span className="text-[11px] font-black text-gray-800 font-mono">
+                                        Controle (Destino): {controle.chave}
+                                      </span>
+                                      <span className="text-[9px] font-bold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
+                                        {controle.origemSigla} ➔ {controle.destinoSigla}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-bold text-gray-600 font-mono">
+                                        Total: R$ {(controle.ctes || []).reduce((s, c) => s + (c.valor || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleControleExpansion(cIdOrKey)}
+                                        className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[9px] font-bold uppercase text-gray-600 flex items-center gap-1 cursor-pointer transition-colors"
+                                      >
+                                        {isExpanded ? "Minimizar Destino ▲" : "Expandir Destino ▼"}
+                                      </button>
+                                      {canEditFields && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRemoveSingleControle(controle.id, controle.chave)}
+                                          className="p-1 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded transition-colors cursor-pointer"
+                                          title="Remover documento da viagem"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Conhecimentos (CT-es) */}
+                                  {isExpanded && (
+                                    <div className="space-y-2 pt-1 animate-fadeIn">
+                                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">
+                                        Conhecimentos de Transporte (CT-es) Atrelados ao Controle
+                                      </span>
+                                      <div className="overflow-x-auto">
+                                        <table className="w-full text-left text-xs border-collapse">
+                                          <thead>
+                                            <tr className="bg-gray-100/70 border-b border-gray-200 text-[9px] font-black text-gray-600 uppercase tracking-wider">
+                                              <th className="p-2">Nº Conhecimento</th>
+                                              <th className="p-2">Volumes</th>
+                                              <th className="p-2">Peso</th>
+                                              <th className="p-2">Tipo Pesagem</th>
+                                              <th className="p-2">Valor Total</th>
+                                              <th className="p-2">Emissão</th>
+                                              <th className="p-2">Remetente</th>
+                                              <th className="p-2">Origem Vínculo</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody className="divide-y divide-gray-100">
+                                            {(controle.ctes || []).map((cte, cIdx) => (
+                                              <tr key={cIdx} className="hover:bg-white transition-colors text-[10px]">
+                                                <td className="p-2 font-mono font-bold text-gray-800">
+                                                  {cte.numero || cte.chave.substring(25, 34) || `CT-${cIdx+1}`}
+                                                </td>
+                                                <td className="p-2 font-semibold text-gray-700">
+                                                  {cte.volumes ?? 15} vol
+                                                </td>
+                                                <td className="p-2 font-semibold text-gray-700">
+                                                  {(cte.pesoKg ?? 120.00).toFixed(2)} Kg
+                                                </td>
+                                                <td className="p-2">
+                                                  <span className={cn(
+                                                    "px-1.5 py-0.5 rounded text-[8px] font-black uppercase",
+                                                    (cte.tipoPesagem || 'Peso') === 'M3' ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
+                                                  )}>
+                                                    {cte.tipoPesagem || 'Peso'}
+                                                  </span>
+                                                </td>
+                                                <td className="p-2 font-bold font-mono text-emerald-700">
+                                                  R$ {(cte.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </td>
+                                                <td className="p-2 text-gray-600">
+                                                  {formatDateTime(cte.dataEmissao || trip.dataViagem)}
+                                                </td>
+                                                <td className="p-2 text-gray-700 font-medium truncate max-w-[120px]" title={cte.remetente}>
+                                                  {cte.remetente || 'Remetente Padrão'}
+                                                </td>
+                                                <td className="p-2">
+                                                  <span className={cn(
+                                                    "px-1.5 py-0.5 rounded text-[8px] font-black uppercase",
+                                                    (cte.origemVinculo || 'Manual via Viagem') === 'Automático'
+                                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                                      : (cte.origemVinculo || 'Manual via Viagem') === 'Manual via Gestão'
+                                                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                                      : "bg-amber-50 text-amber-700 border border-amber-200"
+                                                  )}>
+                                                    {cte.origemVinculo || 'Manual via Viagem'}
+                                                  </span>
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
                                       </div>
                                     </div>
-                                    <span className="text-[10px] font-bold text-gray-700 font-mono shrink-0 pl-2">
-                                      R${" "}
-                                      {(cte.valor || 0).toLocaleString("pt-BR", {
-                                        minimumFractionDigits: 2,
-                                      })}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         )}

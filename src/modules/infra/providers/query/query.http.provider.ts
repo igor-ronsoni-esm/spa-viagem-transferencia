@@ -1,7 +1,7 @@
 import EnvConfiguration from "@configs/environment/env.config";
 import BaseHttpConnector from "../../connectors/base-http.connector";
 
-export default class FastcrudSearchHttpProvider {
+export default class QueryHttpProvider {
   private readonly connector: BaseHttpConnector;
 
   constructor() {

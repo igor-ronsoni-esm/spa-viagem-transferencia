@@ -73,5 +73,6 @@ export function dataAoMeioDia(dataISO: string): Date {
 }
 
 export function dataHoraISO(agora: Date = new Date()): string {
+  if (agora === null || agora === undefined) return "";
   return FORMATADOR_DATA_HORA_ISO.format(agora).replace(",", "");
 }

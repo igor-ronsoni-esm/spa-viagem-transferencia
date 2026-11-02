@@ -3,13 +3,13 @@
 import { DOCUMENTO_FISCAL_STATUS_CONFIG } from "@/src/app/constants";
 import { cn } from "@/src/modules/utils/css.util";
 import { dataHoraISO } from "@/src/modules/utils/data.util";
-import { DocumentoFiscalSchemaOutput, StatusDocumentoFiscalEnum, TipoDocumentoFiscalEnum } from "@modules/domain/viagem/schemas/viagem.schema";
+import { DocumentoFiscalOutput, StatusDocumentoFiscalEnum, TipoDocumentoFiscalEnum } from "@modules/domain/viagem/schemas/viagem.schema";
 import { Clock, FileText, Printer, RefreshCw, RotateCcw, XCircle } from "lucide-react";
 import { useContext } from "react";
 import { ViagemContext } from "../../../context/ViagemContext";
 
 type Props = {
-  documento: DocumentoFiscalSchemaOutput
+  documento: DocumentoFiscalOutput
 }
 
 export default function TabelaBody({ documento }: Readonly<Props>) {
@@ -22,7 +22,6 @@ export default function TabelaBody({ documento }: Readonly<Props>) {
   const isCiot = documento.tipo === TipoDocumentoFiscalEnum.CIOT;
   const isMDFE = documento.tipo === TipoDocumentoFiscalEnum.MDFE;
   const isVPO = documento.tipo === TipoDocumentoFiscalEnum.VPO;
-  const isOutros = !isCiot && !isMDFE && !isVPO;
 
   const configStatus = DOCUMENTO_FISCAL_STATUS_CONFIG[documento.status] || DOCUMENTO_FISCAL_STATUS_CONFIG["DESCONHECIDO"];
 

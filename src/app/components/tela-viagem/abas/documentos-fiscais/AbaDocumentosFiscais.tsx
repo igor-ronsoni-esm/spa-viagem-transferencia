@@ -15,9 +15,7 @@ export default function AbaDocumentosFiscais() {
         <table className="w-full text-left border-collapse table-fixed">
           <TabelaHead />
           <tbody>
-            {documentos.map((doc, index) => {
-              return <TabelaBody documento={doc} key={index} />
-            })}
+            {documentos.map((doc, index) => <TabelaBody documento={doc} key={index} /> )}
             {documentos.length === 0 && (
               <tr>
                 <td

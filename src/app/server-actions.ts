@@ -7,13 +7,15 @@ import { container } from "@modules/domain/DI";
 import { dataAoMeioDia } from "../modules/utils/data.util";
 import { ViagemOutput } from "../modules/domain/viagem/schemas/viagem.schema";
 import { ConsultarViagemPorCodigoExecucaoUseCase } from "../modules/domain/viagem/usecases/consultar-viagem-por-codigo-execucao.usecase";
+import { EmpresaOutput } from "../modules/domain/empresa/schemas/empresa.schema";
+import BuscarTodasEmpresasUseCase from "../modules/domain/empresa/usecases/buscar-todas-empresas.usecase";
 
 
-export async function buscarViagens(dataSelecionada: string): Promise<ResponseServerAction<ResultadoConsultaViagensOutput>> {
+export async function buscarViagens(dataSelecionada: string, empresa: number): Promise<ResponseServerAction<ResultadoConsultaViagensOutput>> {
   try {
     const usecase: ConsultarViagensUseCase = container.get("ConsultarViagensUseCase");
     const viagens = await usecase.execute({
-      codigoEmpresa: 64,
+      codigoEmpresa: empresa,
       dataReferencia: dataAoMeioDia(dataSelecionada).toISOString(),
       direcao: "O",
       viagensPendentes: true,
@@ -56,5 +58,18 @@ export async function buscarViagemPorCodigoExecucao(viagem: number, empresa: num
   }
 }
 
+export async function buscarEmpresas(): Promise<ResponseServerAction<EmpresaOutput[]>> {
+  try {
+    const usecase: BuscarTodasEmpresasUseCase = container.get("BuscarTodasEmpresasUseCase");
+    const resultado = await usecase.execute();
 
- 
+    return success(resultado);
+  } catch (err) {
+    console.error("[BUSCAR_EMPRESAS] Erro ao buscar empresas:", err);
+    return error(
+        err instanceof Error
+            ? err.message
+            : "Erro inesperado ao buscar empresas.",
+    );
+  }
+}

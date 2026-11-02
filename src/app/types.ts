@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ViagemOutput } from "../modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
-
 export type TripStatus = 'PRE_VIAGEM' | 'PENDENTE' | 'REJEITADA' | 'PRONTA' | 'INICIADA' | 'FINALIZADA' | 'CANCELADA';
 export type TripType = 'Normal' | 'Extra';
 export type SectionType = 'Transferencia' | 'Vazio';

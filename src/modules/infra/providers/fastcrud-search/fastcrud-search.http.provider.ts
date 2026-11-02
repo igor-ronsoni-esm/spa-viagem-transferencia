@@ -10,10 +10,10 @@ export default class FastcrudSearchHttpProvider {
   }
 
   public filter<T>(body: unknown): Promise<T> {
-    return this.connector.post<T>("/search/filter", body);
+    return this.connector.post<T>("/search/filter", { body });
   }
 
   public metadata<T>(key: string): Promise<T> {
-    return this.connector.get<T>(`/metadata/chave/${key}`);
+    return this.connector.get<T>(`/metadata/chave/${key}`, {});
   }
 }

@@ -19,5 +19,4 @@ export const FiltroViagensSchema = z.object({
   }).optional(),
 });
 
-export type FiltroViagensOutput = z.infer<typeof FiltroViagensSchema>;
 export type FiltroViagensInput = z.input<typeof FiltroViagensSchema>;

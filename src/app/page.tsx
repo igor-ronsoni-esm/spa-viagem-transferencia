@@ -4,7 +4,8 @@ import TelaViagem from "./components/tela-viagem/TelaViagem";
 import PainelOperacao from "./components/PainelOperacao";
 import { requireNumber } from "../modules/utils/number.util";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import { EmpresasProvider } from "./contexts/EmpresasProvider";
+import { SelecaoEmpresaProvider } from "./contexts/SelecaoEmpresaProvider";
 
 type Props = {
   searchParams: Promise<{
@@ -39,7 +40,7 @@ export default async function PageRoot({ searchParams }: Readonly<Props>) {
 
     redirect(`?${queryParams.toString()}`);
   }
-  
+
   const { data, viagem, realizadas, prontas, pendentes } = await searchParams;
   const dataValida =
     /^\d{4}-\d{2}-\d{2}$/.test(data!) &&
@@ -58,26 +59,30 @@ export default async function PageRoot({ searchParams }: Readonly<Props>) {
   return (
     <div className="min-w-screen min-h-screen bg-page-bg flex">
       <main className="flex-1 flex overflow-hidden h-screen">
-        <SideBarContent />
-        <div className="flex-1 bg-page-bg overflow-hidden flex flex-col relative">
-          <AnimatePresence mode="wait">
-            {viagem ? (
-              <TelaViagem codigoViagem={Number(viagem)} />
-            ) : (
-              <PainelOperacao
-                dataSelecionada={new Date(data)}
-                total={
-                  requireNumber(realizadas) +
-                  requireNumber(prontas) +
-                  requireNumber(pendentes)
-                }
-                realizadas={requireNumber(realizadas)}
-                prontas={requireNumber(prontas)}
-                pendentes={requireNumber(pendentes)}
-              />
-            )}
-          </AnimatePresence>
-        </div>
+        <EmpresasProvider>
+          <SelecaoEmpresaProvider>
+            <SideBarContent />
+            <div className="flex-1 bg-page-bg overflow-hidden flex flex-col relative">
+              <AnimatePresence mode="wait">
+                {viagem ? (
+                  <TelaViagem codigoViagem={Number(viagem)} />
+                ) : (
+                  <PainelOperacao
+                    dataSelecionada={new Date(data)}
+                    total={
+                      requireNumber(realizadas) +
+                      requireNumber(prontas) +
+                      requireNumber(pendentes)
+                    }
+                    realizadas={requireNumber(realizadas)}
+                    prontas={requireNumber(prontas)}
+                    pendentes={requireNumber(pendentes)}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          </SelecaoEmpresaProvider>
+        </EmpresasProvider>
       </main>
     </div>
   );

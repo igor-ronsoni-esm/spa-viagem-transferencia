@@ -11,24 +11,28 @@ import {
   ClipboardCheck,
   Clock,
   Info,
+  ListRestart,
   Play,
   Plus,
   RefreshCw,
   Search,
 } from "lucide-react";
-import { cn } from "@/src/lib/utils";
 import {
   isViagemFinalizada,
   isViagemIniciada,
   isViagemPendente,
   isViagemPronta,
-} from "@/src/modules/lib/validacoes";
-import { fetchSafe } from "@/src/modules/utils/fetches/fetch-safe";
+} from "@modules/lib/validacoes";
+import { fetchSafe } from "@modules/utils/fetches/fetch-safe";
 import { buscarViagens } from "../../server-actions";
 import SideBarSkeleton from "./SideBarSkeleton";
 import { useRouter, useSearchParams } from "next/navigation";
-import { dataHoraISO } from "@/src/modules/utils/data.util";
+import { dataHoraISO } from "@modules/utils/data.util";
 import { Tooltip } from "@mui/material";
+import { cn } from "@modules/utils/css.util";
+import { useEmpresasContext } from "../../contexts/EmpresasProvider";
+import { SelecaoEmpresa } from "../selecao-empresa/SelecaoEmpresa";
+import { useSelecaoEmpresaContext } from "../../contexts/SelecaoEmpresaProvider";
 
 enum TabId {
   PENDENTES = "PENDENTES",
@@ -41,14 +45,13 @@ const tabs = [
   { id: TabId.PENDENTES, label: "Pendentes", icon: Clock },
   { id: TabId.RESOLVIDAS, label: "Resolvidas", icon: ClipboardCheck },
   { id: TabId.INICIADA, label: "Iniciadas", icon: Play },
-  {
-    id: TabId.FINALIZADA,
-    label: "Finalizadas",
-    icon: ClipboardCheck,
-  },
+  { id: TabId.FINALIZADA, label: "Finalizadas", icon: ClipboardCheck },
 ];
 
 export default function SideBarContent() {
+  const { loading: loadingEmpresas, handleBuscarEmpresas } = useEmpresasContext();
+  const { empresa } = useSelecaoEmpresaContext();
+
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -60,14 +63,10 @@ export default function SideBarContent() {
   const dataSelecionada = searchParams.get("data");
 
   const viagensFiltradas = viagens.filter((viagem) => {
-    if (tabSelecionada === TabId.PENDENTES)
-      return isViagemPendente(viagem.viagem.chaveStatus);
-    if (tabSelecionada === TabId.RESOLVIDAS)
-      return isViagemPronta(viagem.viagem.chaveStatus);
-    if (tabSelecionada === TabId.INICIADA)
-      return isViagemIniciada(viagem.viagem.chaveStatus);
-    if (tabSelecionada === TabId.FINALIZADA)
-      return isViagemFinalizada(viagem.viagem.chaveStatus);
+    if (tabSelecionada === TabId.PENDENTES) return isViagemPendente(viagem.viagem.chaveStatus);
+    if (tabSelecionada === TabId.RESOLVIDAS) return isViagemPronta(viagem.viagem.chaveStatus);
+    if (tabSelecionada === TabId.INICIADA) return isViagemIniciada(viagem.viagem.chaveStatus);
+    if (tabSelecionada === TabId.FINALIZADA) return isViagemFinalizada(viagem.viagem.chaveStatus);
     return true;
   });
   viagensFiltradas.sort(
@@ -96,9 +95,11 @@ export default function SideBarContent() {
   });
 
   const fetchViagens = async () => {
+    if (!empresa?.codigo) return;
+
     try {
       setLoading(true);
-      const resultado = await fetchSafe(() => buscarViagens(dataSelecionada));
+      const resultado = await fetchSafe(() => buscarViagens(dataSelecionada, empresa.codigo));
       setEscala(resultado.escala);
       setViagens(resultado.viagens);
       handleTotais(resultado.viagens);
@@ -136,22 +137,12 @@ export default function SideBarContent() {
 
   useEffect(() => {
     void fetchViagens();
-  }, [dataSelecionada]);
+  }, [dataSelecionada, empresa]);
 
   return (
     <div className="flex flex-col border-r border-gray-100 bg-white shrink-0 w-80 p-2">
       <div className="border-b border-gray-50 flex flex-col gap-1 shrink-0">
-        {/* Seletor de Empresa (habilitado quando o usuário pertence a MATRIZ)
-        <CompanySelect
-          companies={companies}
-          selectedCompany={selectedCompany}
-          onSelectCompany={(comp) => {
-            setSelectedCompany(comp);
-            setSelectedTrip(null); // Reseta seleção ao alternar de empresa
-          }}
-          isMatrizUser={isMatrizUser}
-        /> */}
-
+        <SelecaoEmpresa />
         <SelecaoData />
       </div>
       <div className="flex flex-col gap-1 overflow-y-hidden">
@@ -163,6 +154,17 @@ export default function SideBarContent() {
             <Plus className="w-3 h-3" /> NOVA VIAGEM
           </button>
           <div className="flex flex-row items-center gap-1">
+            <Tooltip
+              title={`Recarregar empresas`}
+              arrow
+            >
+               <button
+                onClick={handleBuscarEmpresas}
+                className="p-1.5 rounded-lg bg-gray-50 text-gray-400 hover:text-primary transition-all cursor-pointer"
+              >
+                <ListRestart className="w-4 h-4" />
+              </button>
+            </Tooltip>
             <Tooltip
               title={`Escala de ${escala && dataHoraISO(new Date(escala.dataInicio))} até ${escala && dataHoraISO(new Date(escala.dataFim))}`}
               arrow
@@ -177,7 +179,7 @@ export default function SideBarContent() {
                 className="p-1.5 rounded-lg bg-gray-50 text-gray-400 hover:text-primary transition-all cursor-pointer"
               >
                 <RefreshCw
-                  className={cn("w-4 h-4", loading && "animate-spin")}
+                  className={cn("w-4 h-4", (loading || loadingEmpresas) && "animate-spin")}
                 />
               </button>
             </Tooltip>
@@ -210,12 +212,12 @@ export default function SideBarContent() {
             </button>
           ))}
         </div>
-        {loading ? (
+        {loading || loadingEmpresas ? (
           <SideBarSkeleton />
         ) : (
           <ListagemViagens viagens={viagensPesquisadas} />
         )}
-        {!loading && viagensPesquisadas.length <= 0 && (
+        {!loading && !loadingEmpresas && viagensPesquisadas.length <= 0 && (
           <div className="text-center py-10 opacity-40">
             <ClipboardCheck className="w-8 h-8 mx-auto mb-2" />
             <p className="text-[10px] font-bold">Nenhuma viagem</p>

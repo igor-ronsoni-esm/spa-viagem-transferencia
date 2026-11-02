@@ -1,8 +1,4 @@
-import {
-  HttpConnectorNetworkError,
-  HttpConnectorResponseError,
-  HttpConnectorTimeoutError,
-} from "@infra/connectors/http-connector.errors";
+import { HttpConnectorNetworkError, HttpConnectorResponseError, HttpConnectorTimeoutError } from "@modules/infra/connectors/http-connector.errors";
 
 export function mapeiaErroFastcrudSearch(
   origem: string,

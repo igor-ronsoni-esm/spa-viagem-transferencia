@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EmpresaSchema } from "../../empresa/schemas/empresa.schema";
 
 export const TipoTransferenciaSchema = z.enum([
   "ESCALA",
@@ -41,9 +42,18 @@ export const OcorrenciaSchema = z.enum([
   "DESCONHECIDO"
 ]);
 
+const VeiculoTipoSchemaEnum = z.enum([
+  "PROPRIO",
+  "AGREGADO",
+  "DIARISTA",
+  "TERCEIRO"
+]);
+
+const TipoPesoM3Schema = z.enum(["PESO", "M3"]);
+
 const VeiculoTipoSchema = z.enum(["P", "A", "D", "T"]).transform((tipo) => {
   const tipos = {
-    P: "PRINCIPAL",
+    P: "PROPRIO",
     A: "AGREGADO",
     D: "DIARISTA",
     T: "TERCEIRO",
@@ -91,6 +101,17 @@ const TipoTransferenciaViagemSchema = z
   })
   .pipe(TipoTransferenciaSchema);
 
+const SituacaoDescarregamentoSchemaEnum = z.enum(["S", "N"])
+
+const TipoPesoM3DocumentoSchemaEnum = z.enum(["P", "M"]).transform((tipo) => {
+  const tipos = {
+    P: "PESO",
+    M: "M3",
+  } as const;
+
+  return tipos[tipo] ?? "PESO";
+}).pipe(TipoPesoM3Schema);
+
 const LinhaLancamentoSchema = z.object({
   codigo: z.number(),
   viagemExecucao: z.object({
@@ -103,16 +124,8 @@ const LinhaLancamentoSchema = z.object({
 
 const TrechoSchema = z.object({
   codigo: z.number(),
-  origem: z.object({
-    codigo: z.number(),
-    sigla: z.string(),
-    descricao: z.string(),
-  }),
-  destino: z.object({
-    codigo: z.number(),
-    sigla: z.string(),
-    descricao: z.string(),
-  }),
+  origem: EmpresaSchema,
+  destino: EmpresaSchema,
 });
 
 const LinhaSchema = z.object({
@@ -156,36 +169,47 @@ const LacreSchema = z.object({
   numero: z.string(),
 });
 
-const EmpresaSchema = z.object({
-  codigo: z.number(),
-  sigla: z.string(),
-  descricao: z.string(),
-});
-
 const ConhecimentoSchema = z.object({
   codigo: z.number(),
   numero: z.string(),
   quantidade: z.number(),
   peso: z.number(),
+  m3: z.number(),
+  tipoPesoM3: TipoPesoM3DocumentoSchemaEnum,
   valor: z.number(),
   remetente: EmpresaSchema,
   destinatario: EmpresaSchema,
+  dataEmissao: z.string().default(new Date().toISOString()), // Alterar,
+})
+
+const NotaFiscalSchema = z.object({
+  codigo: z.number(),
+  numero: z.string(),
+  quantidade: z.number(),
+  peso: z.number(),
+  m3: z.number(),
+  tipoPesoM3: TipoPesoM3DocumentoSchemaEnum,
+  valor: z.number(),
 })
 
 const ControleSchema = z.object({
+  marcado: z.boolean().nullable().default(false),
   codigo: z.number(),
   chave: z.string(),
   origem: EmpresaSchema,
   destino: EmpresaSchema,
   tipoInclusao: TipoInclusaoSchema.nullable(),
   ctes: z.array(ConhecimentoSchema),
+  nfes: z.array(NotaFiscalSchema).optional()
+});
+
+const DescarregamentoControleSchema = z.object({
+  destino: z.string(),
+  controles: z.array(ControleSchema)
 });
 
 const DocumentoSchema = z.object({
-  descarregamento: z.object({
-    destino: z.string(),
-    controles: z.array(ControleSchema)
-  })
+  descarregamento: DescarregamentoControleSchema,
 });
 
 const TrocaMotoristaSchema = z.object({
@@ -278,10 +302,19 @@ export const TipoViagemEnum = TipoSchema.enum;
 export const MotoristaTipoEnum = MotoristaTipoSchemaEnum.enum;
 export const StatusDocumentoFiscalEnum = StatusDocumentoFiscalSchemaEnum.enum;
 export const TipoDocumentoFiscalEnum = TipoDocumentoFiscalSchemaEnum.enum;
+export const SituacaoDescarregamentoEnum = SituacaoDescarregamentoSchemaEnum.enum;
+export const TipoPesoM3Enum = TipoPesoM3Schema.enum;
+export const TipoInclusaoEnum = TipoInclusaoSchema.enum;
+export const TipoVeiculoEnum = VeiculoTipoSchemaEnum.enum;
+
+export type OcorrenciaViagemEnumOutput = z.infer<typeof OcorrenciaSchema>;
+export type SituacaoDescarregamentoEnumOutput = z.infer<typeof SituacaoDescarregamentoSchemaEnum>;
 
 export type TipoTransferenciaOutput = z.infer<typeof TipoTransferenciaSchema>;
 export type TipoViagemOutput = z.infer<typeof TipoSchema>;
 export type ViagemOutput = z.infer<typeof ViagemSchema>;
-export type OcorrenciaViagemEnumOutput = z.infer<typeof OcorrenciaSchema>;
 export type OcorrenciaViagemOutput = z.infer<typeof OcorrenciaViagemSchema>;
-export type DocumentoFiscalSchemaOutput = z.infer<typeof DocumentoFiscalSchema>;
+export type DocumentoFiscalOutput = z.infer<typeof DocumentoFiscalSchema>;
+export type DescarregamentoOutput = z.infer<typeof DescarregamentoSchema>;
+export type ControleOutput = z.infer<typeof ControleSchema>;
+export type TipoVeiculoOutput = z.infer<typeof VeiculoTipoSchema>;

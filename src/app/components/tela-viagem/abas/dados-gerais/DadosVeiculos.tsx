@@ -8,6 +8,7 @@ import { Plus, Truck } from "lucide-react";
 import FastcrudConsultasConfig from "@configs/environment/fastcrud-consultas.config";
 import SelecaoModal from "../../modals/SelecaoModal";
 import { cn } from "@modules/utils/css.util";
+import { TIPO_VEICULO_TRADUCAO } from "@/src/app/constants";
 
 export default function DadosVeiculos() {
   const [modalSelecaoVeiculoOpen, setModalSelecaoVeiculoOpen] = useState<boolean>(false);
@@ -51,8 +52,8 @@ export default function DadosVeiculos() {
                   <span className="text-xs font-bold text-gray-700">
                     {frota.veiculo.placa}
                   </span>
-                  <span className="text-[10px] font-black bg-gray-200 text-gray-600 px-1 rounded uppercase tracking-tighter">
-                    {frota.veiculo.tipo}
+                  <span className="text-[10px] font-black bg-gray-200 text-gray-600 px-1 rounded">
+                    {TIPO_VEICULO_TRADUCAO[frota.veiculo.tipo]?.label ?? frota.veiculo.tipo}
                   </span>
                   
                 </div>
@@ -60,7 +61,7 @@ export default function DadosVeiculos() {
                   <span className="text-[11px] text-gray-400 truncate">
                     {frota.veiculo.codigo} | {frota.veiculo.descricao}
                   </span>
-                  <span className={cn("text-[10px] font-black bg-gray-200 px-1 rounded uppercase tracking-tighter", 
+                  <span className={cn("text-[10px] font-black bg-gray-200 px-1 rounded uppercase", 
                     frota.principal ? 
                       "bg-primary text-white shadow-xs" : "bg-gray-200 text-gray-500"
                       )}>

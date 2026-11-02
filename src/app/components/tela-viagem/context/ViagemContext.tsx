@@ -1,7 +1,5 @@
 import { ABAS_TELA_VIAGEM_ENUM } from "@/src/app/constants";
-import { ViagemOutput } from "@/src/modules/domain/viagem/schemas/viagem.schema";
 import { createContext, Dispatch, SetStateAction } from "react";
-
 
 type ViagemContextType = {
   modoEdicao: boolean;
