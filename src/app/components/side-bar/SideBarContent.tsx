@@ -92,7 +92,11 @@ export default function SideBarContent() {
     );
   });
 
-  const fetchViagens = async () => {
+  const podeSelecionar =
+    searchParams.get("modoEdicao") === "false" ||
+    searchParams.get("modoEdicao") === null;
+  
+    const fetchViagens = async () => {
     if (!empresa?.codigo) return;
 
     try {
@@ -145,12 +149,16 @@ export default function SideBarContent() {
       </div>
       <div className="flex flex-col gap-1 overflow-y-hidden">
         <div className="flex items-center justify-between mt-1">
-          <button
-            onClick={() => {}}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary text-white rounded-lg text-[9px] font-black shadow-md shadow-primary/10 hover:opacity-90 transition-all cursor-pointer"
-          >
-            <Plus className="w-3 h-3" /> NOVA VIAGEM
-          </button>
+          <Tooltip title="Cadastrar nova Viagem Extra ou Rota Alternativa" arrow>
+            <button
+              onClick={() => {}}
+              disabled={!podeSelecionar}
+              className={cn("flex items-center gap-1.5 px-2.5 py-1.5 bg-primary text-white rounded-lg text-[9px] font-black shadow-md shadow-primary/10 ", 
+                podeSelecionar ? "hover:opacity-90 transition-all cursor-pointer" : "opacity-50 cursor-not-allowed")}
+            >
+              <Plus className="w-3 h-3" /> NOVA VIAGEM
+            </button>
+          </Tooltip>
           <div className="flex flex-row items-center gap-1">
             <Tooltip
               title={`Recarregar empresas`}

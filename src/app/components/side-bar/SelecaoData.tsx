@@ -68,6 +68,10 @@ export default function SelecaoData() {
     router.replace(`?${params.toString()}`);
   };
 
+  const podeSelecionar =
+    searchParams.get("modoEdicao") === "false" ||
+    searchParams.get("modoEdicao") === null;
+
   return (
     <div className="flex items-center gap-2">
       <div className="flex flex-1 relative overflow-x-auto no-scrollbar pb-1">
@@ -75,6 +79,7 @@ export default function SelecaoData() {
           {days.map((d) => (
             <button
               key={d.full}
+              disabled={!podeSelecionar}
               type="button"
               onClick={() => handleAlterarDataSelecionada(d.full)}
               aria-pressed={dataBase === d.full}
@@ -82,7 +87,7 @@ export default function SelecaoData() {
                 "flex flex-col items-center min-w-8.5 p-1 rounded-lg transition-all cursor-pointer border relative group",
                 dataBase === d.full
                   ? "bg-primary border-primary text-white shadow-sm"
-                  : "bg-white border-gray-100 text-gray-400 hover:border-primary/30",
+                  : podeSelecionar ? "bg-white border-gray-100 text-gray-400 hover:border-primary/30" : "bg-gray-100 border-gray-100 text-gray-300 cursor-not-allowed",
               )}
             >
               <span className="text-[7px] font-black leading-tight">
@@ -104,10 +109,13 @@ export default function SelecaoData() {
       <Tooltip title="Selecionar data escala" arrow>
         <button
           type="button"
+          disabled={!podeSelecionar}
           onClick={abrirSeletor}
           className="relative group shrink-0 cursor-pointer"
         >
-          <CalendarIcon className="w-5 h-5 text-gray-300 group-hover:text-primary transition-colors pointer-events-none" />
+          <CalendarIcon className={cn("w-5 h-5 text-gray-300",
+            podeSelecionar ? "group-hover:text-primary transition-colors pointer-events-none" : "opacity-50 cursor-not-allowed"
+          )} />
 
           <input
             ref={inputDataRef}
