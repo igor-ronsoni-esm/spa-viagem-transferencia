@@ -1,36 +1,37 @@
 "use client";
 
 import { useContext, useState } from "react";
-import { ViagemContext } from "../../context/ViagemContext";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { MotoristaTipoEnum, ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
+import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { Plus, Users } from "lucide-react";
-import { cn } from "@/src/modules/utils/css.util";
 import SelecaoModal from "../../modals/SelecaoModal";
-import FastcrudConsultasConfig from "@/src/configs/environment/fastcrud-consultas.config";
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { TipoMotoristaEnum } from "@modules/domain/viagem/schemas/dados-viagem/motorista/tipo-motorista.schema";
+import { cn } from "@modules/utils/css.util";
+import FastcrudConsultasConfig from "@configs/environment/fastcrud-consultas.config";
 
 export default function DadosMotoristas() {
   const [modalSelecaoMotoristaOpen, setModalSelecaoMotoristaOpen] = useState<boolean>(false);
 
-  const { modoEdicao } = useContext(ViagemContext);
+  const { modoEdicao } = useFormularioContext();
   const { watch, control } = useFormContext<ViagemOutput>();
   const { fields: motoristas, update } = useFieldArray({ control, name: "motoristas" });
 
   const alterarMotoristaPrincipal = (index: number) => {
-    const indexMotoristaAtual = motoristas.findIndex((m) => m.tipo === MotoristaTipoEnum.TITULAR);
+    const indexMotoristaAtual = motoristas.findIndex((m) => m.tipo === TipoMotoristaEnum.TITULAR);
 
     const motoristaPrincipal = motoristas[indexMotoristaAtual];
     const motoristaSelecionado = motoristas[index];
 
     update(indexMotoristaAtual, { ...motoristaPrincipal, tipo: motoristaSelecionado.tipo });
-    update(index, { ...motoristaSelecionado, tipo: MotoristaTipoEnum.TITULAR });
+    update(index, { ...motoristaSelecionado, tipo: TipoMotoristaEnum.TITULAR });
   };
 
   const semMotoristaSelecionado = 
     motoristas === null || 
     motoristas === undefined || 
     motoristas?.length === 0 || 
-    !motoristas?.some((v) => v.tipo === MotoristaTipoEnum.TITULAR);
+    !motoristas?.some((v) => v.tipo === TipoMotoristaEnum.TITULAR);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs flex flex-col justify-between">
@@ -68,7 +69,7 @@ export default function DadosMotoristas() {
                   onClick={() => alterarMotoristaPrincipal(index)}
                   className={cn(
                     "px-1.5 py-0.5 rounded text-[11px] font-black uppercase tracking-tighter cursor-pointer transition-all",
-                    motorista.tipo === MotoristaTipoEnum.TITULAR
+                    motorista.tipo === TipoMotoristaEnum.TITULAR
                       ? "bg-primary text-white shadow-xs"
                       : "bg-gray-200 text-gray-500",
                   )}
@@ -79,7 +80,7 @@ export default function DadosMotoristas() {
                 <span
                   className={cn(
                     "px-1.5 py-0.5 rounded text-[11px] font-black uppercase tracking-tighter",
-                    motorista.tipo === MotoristaTipoEnum.TITULAR
+                    motorista.tipo === TipoMotoristaEnum.TITULAR
                       ? "bg-primary text-white"
                       : "bg-gray-100 text-gray-400",
                   )}
@@ -116,7 +117,7 @@ export default function DadosMotoristas() {
           console.log(row);
         }}
         filtrosFixos={[
-          { field: "EMP_CODIGO", operation: "=", value: String(watch("codigoAgencia")) },// Validar quando é possivel buscar todos os motoristas
+          { field: "EMP_CODIGO", operation: "=", value: String(watch("codigoAgencia")) },// TODO: Validar quando é possivel buscar todos os motoristas
         ]}
       />
     </div>

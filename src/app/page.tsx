@@ -1,11 +1,11 @@
 import { AnimatePresence } from "motion/react";
-import SideBarContent from "./components/side-bar/SideBarContent";
-import TelaViagem from "./components/tela-viagem/TelaViagem";
-import PainelOperacao from "./components/PainelOperacao";
-import { requireNumber } from "../modules/utils/number.util";
+import SideBarContent from "@components/side-bar/SideBarContent";
+import TelaViagem from "@components/tela-viagem/TelaViagem";
+import PainelOperacao from "@components/PainelOperacao";
+import { requireNumber } from "@modules/utils/number.util";
 import { redirect } from "next/navigation";
-import { EmpresasProvider } from "./contexts/EmpresasProvider";
-import { SelecaoEmpresaProvider } from "./contexts/SelecaoEmpresaProvider";
+import { EmpresasProvider } from "@contexts/empresas/EmpresasProvider";
+import { SelecaoEmpresaProvider } from "@contexts/empresa/SelecaoEmpresaProvider";
 
 type Props = {
   searchParams: Promise<{
@@ -56,6 +56,7 @@ export default async function PageRoot({ searchParams }: Readonly<Props>) {
 
     redirect(`?${queryParams.toString()}`);
   }
+  
   return (
     <div className="min-w-screen min-h-screen bg-page-bg flex">
       <main className="flex-1 flex overflow-hidden h-screen">

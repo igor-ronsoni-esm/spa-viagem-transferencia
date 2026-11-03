@@ -1,7 +1,7 @@
 import OcorrenciaHeader from "./OcorrenciaHeader";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import OcorrenciaCard from "./OcorrenciaCard";
-import { ViagemOutput } from "@/src/modules/domain/viagem/schemas/viagem.schema";
+import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 
 export default function AbaOcorrencias() {
   const { control } = useFormContext<ViagemOutput>();

@@ -1,4 +1,4 @@
-import SideBarSkeleton from "./components/side-bar/SideBarSkeleton";
+import SideBarSkeleton from "@components/side-bar/SideBarSkeleton";
 
 export default function Loading() {
   return (

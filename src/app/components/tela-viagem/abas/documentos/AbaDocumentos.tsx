@@ -1,16 +1,15 @@
 "use client";
 
-import { useContext } from "react";
 import Descarregamentos from "./descarregamentos/Descarregamentos";
 import DocumentosHeader from "./DocumentosHeader";
-import { ViagemContext } from "../../context/ViagemContext";
 import { cn } from "@modules/utils/css.util";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import ApresentarControles from "./controles/ApresentarControles";
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
 
 export default function AbaDocumentos() {
-  const { modoEdicao } = useContext(ViagemContext);
+  const { modoEdicao } = useFormularioContext();
   const { control } = useFormContext<ViagemOutput>();
   const documentos = useWatch({ control, name: "documentos" });
 

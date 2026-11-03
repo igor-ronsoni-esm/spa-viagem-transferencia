@@ -1,4 +1,4 @@
-import ViagemTransferenciaHttpProvider from "@/src/modules/infra/providers/viagem-transferencia/viagem-transferencia.http.provider";
+import ViagemTransferenciaHttpProvider from "@modules/infra/providers/viagem-transferencia/viagem-transferencia.http.provider";
 import { ViagemOutput, ViagemSchema } from "../schemas/viagem.schema";
 import { ConsultarViagemPorCodigoExecucaoUseCase } from "../usecases/consultar-viagem-por-codigo-execucao.usecase";
 

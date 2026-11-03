@@ -1,4 +1,4 @@
-import { ControleOutput } from "@/src/modules/domain/viagem/schemas/viagem.schema";
+import { ControleOutput } from "@modules/domain/viagem/schemas/dados-viagem/documentos/controle.schema";
 import ApresentacaoConhecimentos from "./ApresentacaoConhecimentos";
 
 type Props = {

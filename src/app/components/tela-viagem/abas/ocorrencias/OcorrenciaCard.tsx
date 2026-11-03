@@ -1,7 +1,7 @@
-import { STATUS_TRADUCAO } from "@/src/app/constants";
-import { dataHoraISO } from "@/src/modules/utils/data.util";
-import { OcorrenciaViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
+import { STATUS_TRADUCAO } from "@constants/traducao";
+import { OcorrenciaViagemOutput } from "@modules/domain/viagem/schemas/dados-viagem/ocorrencia/ocorrencia-viagem.schema";
 import { cn } from "@modules/utils/css.util";
+import { dataHoraISO } from "@modules/utils/data.util";
 
 type Props = {
   index: number,

@@ -1,9 +1,9 @@
 "use client";
 
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { ViagemOutput } from "@/src/modules/domain/viagem/schemas/viagem.schema";
 import TabelaHead from "./tabela/Head";
 import TabelaBody from "./tabela/Body";
+import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 
 export default function AbaDocumentosFiscais() {
   const { control } = useFormContext<ViagemOutput>();

@@ -1,19 +1,19 @@
 "use client";
 
 import { useContext, useState } from "react";
-import { ViagemContext } from "../../context/ViagemContext";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { Plus, Truck } from "lucide-react";
 import FastcrudConsultasConfig from "@configs/environment/fastcrud-consultas.config";
 import SelecaoModal from "../../modals/SelecaoModal";
 import { cn } from "@modules/utils/css.util";
-import { TIPO_VEICULO_TRADUCAO } from "@/src/app/constants";
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { TIPO_VEICULO_TRADUCAO } from "@constants/traducao";
 
 export default function DadosVeiculos() {
   const [modalSelecaoVeiculoOpen, setModalSelecaoVeiculoOpen] = useState<boolean>(false);
 
-  const { modoEdicao } = useContext(ViagemContext);
+  const { modoEdicao } = useFormularioContext();
   const { watch, control } = useFormContext<ViagemOutput>();
   const { fields: veiculos } = useFieldArray({ control, name: "veiculos" });
   

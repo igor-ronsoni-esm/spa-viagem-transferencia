@@ -1,19 +1,21 @@
 "use client";
 
-import { DOCUMENTO_FISCAL_STATUS_CONFIG } from "@/src/app/constants";
-import { cn } from "@/src/modules/utils/css.util";
-import { dataHoraISO } from "@/src/modules/utils/data.util";
-import { DocumentoFiscalOutput, StatusDocumentoFiscalEnum, TipoDocumentoFiscalEnum } from "@modules/domain/viagem/schemas/viagem.schema";
+
+import { DOCUMENTO_FISCAL_STATUS_CONFIG } from "@constants/config-label";
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { DocumentoFiscalOutput } from "@modules/domain/viagem/schemas/dados-viagem/documento-fiscal/manifesto.schema";
+import { StatusDocumentoFiscalEnum } from "@modules/domain/viagem/schemas/dados-viagem/documento-fiscal/status-documento-fiscal.schema";
+import { TipoDocumentoFiscalEnum } from "@modules/domain/viagem/schemas/dados-viagem/documento-fiscal/tipo-documento-fiscal.schema";
+import { cn } from "@modules/utils/css.util";
+import { dataHoraISO } from "@modules/utils/data.util";
 import { Clock, FileText, Printer, RefreshCw, RotateCcw, XCircle } from "lucide-react";
-import { useContext } from "react";
-import { ViagemContext } from "../../../context/ViagemContext";
 
 type Props = {
   documento: DocumentoFiscalOutput
 }
 
 export default function TabelaBody({ documento }: Readonly<Props>) {
-  const { modoEdicao } = useContext(ViagemContext);
+  const { modoEdicao } = useFormularioContext();
 
   const isRejeitado = documento.status === StatusDocumentoFiscalEnum.REJEITADO;
   const isAutorizado = documento.status === StatusDocumentoFiscalEnum.AUTORIZADO;

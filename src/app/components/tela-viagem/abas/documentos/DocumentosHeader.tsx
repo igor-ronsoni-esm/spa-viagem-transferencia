@@ -1,17 +1,18 @@
 "use client";
 
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
+import { cn } from "@modules/utils/css.util";
 import { ClipboardList, FolderPlus, ListPlus, Search, Trash2 } from "lucide-react";
 import { useContext, useState } from "react";
-import { ViagemContext } from "../../context/ViagemContext";
-import { cn } from "@/src/modules/utils/css.util";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { ViagemOutput } from "@/src/modules/domain/viagem/schemas/viagem.schema";
+
 
 export default function DocumentosHeader() {
   const [modalSelecionarDocumentosOpen, setModalSelecionarDocumentosOpen] = useState<boolean>(false);
   const [chaveControle, setChaveControle] = useState<string>("");
 
-  const { modoEdicao, loading } = useContext(ViagemContext);
+  const { modoEdicao, loading } = useFormularioContext();
   const { control } = useFormContext<ViagemOutput>();
   const { fields: documentos } = useFieldArray({ control, name: "documentos" });
 

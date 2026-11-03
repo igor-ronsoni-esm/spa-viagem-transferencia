@@ -4,11 +4,11 @@ import { ResponseServerAction, success, error } from "@modules/utils/handling/re
 import { ResultadoConsultaViagensOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
 import { ConsultarViagensUseCase } from "@modules/domain/viagem/usecases/consultar-viagens.usecase";
 import { container } from "@modules/domain/DI";
-import { dataAoMeioDia } from "../modules/utils/data.util";
-import { ViagemOutput } from "../modules/domain/viagem/schemas/viagem.schema";
-import { ConsultarViagemPorCodigoExecucaoUseCase } from "../modules/domain/viagem/usecases/consultar-viagem-por-codigo-execucao.usecase";
-import { EmpresaOutput } from "../modules/domain/empresa/schemas/empresa.schema";
-import BuscarTodasEmpresasUseCase from "../modules/domain/empresa/usecases/buscar-todas-empresas.usecase";
+import { dataAoMeioDia } from "@modules/utils/data.util";
+import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
+import { ConsultarViagemPorCodigoExecucaoUseCase } from "@modules/domain/viagem/usecases/consultar-viagem-por-codigo-execucao.usecase";
+import { EmpresaOutput } from "@modules/domain/empresa/schemas/empresa.schema";
+import BuscarTodasEmpresasUseCase from "@modules/domain/empresa/usecases/buscar-todas-empresas.usecase";
 
 
 export async function buscarViagens(dataSelecionada: string, empresa: number): Promise<ResponseServerAction<ResultadoConsultaViagensOutput>> {

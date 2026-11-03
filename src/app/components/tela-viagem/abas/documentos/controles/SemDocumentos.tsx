@@ -1,11 +1,10 @@
 "use client";
 
 import { ClipboardList } from "lucide-react";
-import { useContext } from "react";
-import { ViagemContext } from "../../../context/ViagemContext";
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
 
 export default function SemDocumentos() {
-  const { modoEdicao } = useContext(ViagemContext);
+  const { modoEdicao } = useFormularioContext();
 
   return (
     <div className="py-12 px-4 text-center bg-white rounded-xl border border-gray-100 border-dashed space-y-3">

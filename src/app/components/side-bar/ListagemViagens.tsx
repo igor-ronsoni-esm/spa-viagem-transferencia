@@ -1,11 +1,10 @@
 "use client";
 
-import { ViagemListagemOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
-
+import { ViagemResumoOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
 import { CardViagem } from "./CardViagem";
 
 type Props = {
-  viagens: ViagemListagemOutput[];
+  viagens: ViagemResumoOutput[];
 };
 
 export default function ListagemViagens({ viagens }: Readonly<Props>) {

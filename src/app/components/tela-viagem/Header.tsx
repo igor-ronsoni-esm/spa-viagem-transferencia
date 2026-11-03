@@ -1,8 +1,8 @@
 "use client";
 
+import { STATUS_TRADUCAO } from "@constants/traducao";
 import { Clipboard, X } from "lucide-react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { STATUS_TRADUCAO } from "../../constants";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 export default function Header({ viagem }: { viagem: any }) {
   const searchParams = useSearchParams();
@@ -13,13 +13,13 @@ export default function Header({ viagem }: { viagem: any }) {
 
     params.delete("viagem");
     params.delete("modoEdicao");
-    
+
     const query = params.toString();
     const url = query ? `?${query}` : "";
 
-    router.replace(`${window.location.pathname}${url}`);
+    router.replace(`${url}`);
   };
- 
+
   const status = STATUS_TRADUCAO[viagem.status] || STATUS_TRADUCAO.SEM_STATUS;
 
   return (
@@ -35,8 +35,7 @@ export default function Header({ viagem }: { viagem: any }) {
             {viagem.codigo && viagem.codigo !== 0
               ? `Código: ${viagem.codigo}`
               : "Ainda não gerada"}{" "}
-            •{" "}
-            {status.label}
+            • {status.label}
           </p>
         </div>
       </div>

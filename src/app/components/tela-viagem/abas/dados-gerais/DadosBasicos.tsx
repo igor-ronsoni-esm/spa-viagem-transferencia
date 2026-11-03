@@ -2,22 +2,17 @@
 
 import { Clipboard } from "lucide-react";
 import { useContext } from "react";
-import { ViagemContext } from "../../context/ViagemContext";
 import { useFormContext } from "react-hook-form";
 import type { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { cn } from "@modules/utils/css.util";
-import {
-  TipoTransferenciaEnum,
-  TipoViagemEnum,
-} from "@modules/domain/viagem/schemas/viagem.schema";
-import {
-  EXTRA_TIPO_TRADUCAO,
-  TIPO_TRANSFERENCIA_TRADUCAO,
-  TIPO_VIAGEM_TRADUCAO,
-} from "@app/constants";
+
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { TipoViagemEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-viagem.schema";
+import { EXTRA_TIPO_TRADUCAO, TIPO_TRANSFERENCIA_TRADUCAO, TIPO_VIAGEM_TRADUCAO } from "@constants/traducao";
+import { TipoTransferenciaEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-transferencia.schema";
 
 export default function DadosBasicos() {
-  const { modoEdicao } = useContext(ViagemContext);
+  const { modoEdicao } = useFormularioContext();
   const { register, watch } = useFormContext<ViagemOutput>();
 
   const podeEditarTipoViagem = modoEdicao;
@@ -125,7 +120,7 @@ export default function DadosBasicos() {
             >
               {Object.values(EXTRA_TIPO_TRADUCAO).map((motivo, index) => (
                 <option key={index} value={index + 1}>
-                  {motivo}
+                  {motivo.label}
                 </option>
               ))}
             </select>

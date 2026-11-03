@@ -1,4 +1,4 @@
-import ApiEmpresasHttpProvider from "@/src/modules/infra/providers/api-empresas/api-empresas.http.provider";
+import ApiEmpresasHttpProvider from "@modules/infra/providers/api-empresas/api-empresas.http.provider";
 import { EmpresaOutput } from "../schemas/empresa.schema";
 import BuscarTodasEmpresasUseCase from "../usecases/buscar-todas-empresas.usecase";
 

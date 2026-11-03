@@ -1,4 +1,5 @@
-import { OcorrenciaViagemEnum, OcorrenciaViagemEnumOutput, TipoTransferenciaEnum, TipoTransferenciaOutput } from "../domain/viagem/schemas/viagem.schema";
+import { OcorrenciaViagemEnum, OcorrenciaViagemEnumOutput } from "@modules/domain/viagem/schemas/dados-viagem/ocorrencia/ocorrencias.schema";
+import { TipoTransferenciaEnum, TipoTransferenciaEnumOutput } from "@modules/domain/viagem/schemas/dados-viagem/tipo-transferencia.schema";
 
 const OCORRENCIAS_VIAGEM_PENDENTE = new Set<OcorrenciaViagemEnumOutput>([
   OcorrenciaViagemEnum.DISPONIBILIZACAO_VIAGEM_CANCELADA,
@@ -52,14 +53,14 @@ export function isViagemPronta(status: OcorrenciaViagemEnumOutput) {
   return OCORRENCIAS_VIAGEM_PRONTA.has(status);
 }
 
-export function isTipoTransferenciaExtra(tipo: TipoTransferenciaOutput) {
+export function isTipoTransferenciaExtra(tipo: TipoTransferenciaEnumOutput) {
   return tipo === TipoTransferenciaEnum.EXTRA;
 }
 
-export function isTipoTransferenciaEscala(tipo: TipoTransferenciaOutput) {
+export function isTipoTransferenciaEscala(tipo: TipoTransferenciaEnumOutput) {
   return tipo === TipoTransferenciaEnum.ESCALA;
 }
 
-export function isTipoTransferenciaRotaAlternativa(tipo: TipoTransferenciaOutput) {
+export function isTipoTransferenciaRotaAlternativa(tipo: TipoTransferenciaEnumOutput) {
   return tipo === TipoTransferenciaEnum.ROTA_ALTERNATIVA;
 }

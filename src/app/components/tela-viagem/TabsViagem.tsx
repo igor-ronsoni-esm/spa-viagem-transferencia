@@ -1,19 +1,17 @@
 "use client";
 
-import {
-  OcorrenciaViagemEnum,
-  OcorrenciaViagemEnumOutput,
-  TipoViagemEnum,
-  ViagemOutput,
-} from "@modules/domain/viagem/schemas/viagem.schema";
+import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { Edit, Save, X, Play, RefreshCw, Trash2 } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { ViagemContext } from "./context/ViagemContext";
+import { useEffect, useState } from "react";
 import { cn } from "@modules/utils/css.util";
 import { Tooltip } from "@mui/material";
-import { ABAS_TELA_VIAGEM_ENUM } from "../../constants";
 import CancelarEdicaoModal from "./modals/CancelarEdicaoModal";
 import { useSearchParams } from "next/navigation";
+import { OcorrenciaViagemEnum, OcorrenciaViagemEnumOutput } from "@modules/domain/viagem/schemas/dados-viagem/ocorrencia/ocorrencias.schema";
+import { ABAS_TELA_VIAGEM_ENUM } from "@constants/enum";
+import { TipoViagemEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-viagem.schema";
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { useViagemContext } from "@contexts/viagem/ViagemProvider";
 
 type Props = {
   viagem: ViagemOutput;
@@ -26,12 +24,9 @@ export default function TabsViagem({ viagem }: Readonly<Props>) {
     tabSelecionada,
     setTabSelecionada,
     handleEditarViagem,
-    handleGerarViagem,
-    handleResetarViagem,
-    handleCancelarViagem,
     handleCancelarEdicao,
-    handleIniciarManualmente,
-  } = useContext(ViagemContext);
+  } = useFormularioContext();
+  const { handleGerarViagem, handleCancelarViagem, handleIniciarManualmente, handleResetarViagem } = useViagemContext();
   const searchParams = useSearchParams();
 
   const [cancelarModalOpen, setCancelarModalOpen] = useState<boolean>(false);
@@ -42,13 +37,16 @@ export default function TabsViagem({ viagem }: Readonly<Props>) {
     OcorrenciaViagemEnum.VIAGEM_INICIADA,
   ];
 
-  const STATUS_PERMITE_INICIAR: OcorrenciaViagemEnumOutput[] = [OcorrenciaViagemEnum.VIAGEM_DISPONIBILIZADA];
+  const STATUS_PERMITE_INICIAR: OcorrenciaViagemEnumOutput[] = [
+    OcorrenciaViagemEnum.VIAGEM_DISPONIBILIZADA,
+  ];
 
   const viagemEstaGerada =
     viagem.codigo !== null &&
     viagem.codigo !== undefined &&
     viagem.codigo !== 0;
-  const podeEditar = viagem.status === OcorrenciaViagemEnum.PRE_VIAGEM || viagem.status === null;
+  const podeEditar =
+    viagem.status === OcorrenciaViagemEnum.PRE_VIAGEM || viagem.status === null;
   const podeCancelarViagem = STATUS_PERMITE_CANCELAR.includes(viagem.status);
   const podeIniciarManualmente = STATUS_PERMITE_INICIAR.includes(viagem.status);
 
@@ -56,8 +54,8 @@ export default function TabsViagem({ viagem }: Readonly<Props>) {
     if ((await searchParams).get("modoEdicao") === "true" && !modoEdicao) {
       handleCancelarEdicao();
     }
-  }
-  
+  };
+
   useEffect(() => {
     validarModoEdicao();
   }, []);
@@ -183,12 +181,17 @@ export default function TabsViagem({ viagem }: Readonly<Props>) {
       </div>
       <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 border-t border-gray-200/50">
         {Object.values(ABAS_TELA_VIAGEM_ENUM).map((tab) => {
-          const isTabDisabled = tab === ABAS_TELA_VIAGEM_ENUM.DOCUMENTOS && viagem.tipoViagem === TipoViagemEnum.VAZIO;
+          const isTabDisabled =
+            tab === ABAS_TELA_VIAGEM_ENUM.DOCUMENTOS &&
+            viagem.tipoViagem === TipoViagemEnum.VAZIO;
           return (
             <button
               key={tab}
               disabled={isTabDisabled}
-              onClick={() => !isTabDisabled && setTabSelecionada(tab as ABAS_TELA_VIAGEM_ENUM)}
+              onClick={() =>
+                !isTabDisabled &&
+                setTabSelecionada(tab as ABAS_TELA_VIAGEM_ENUM)
+              }
               className={cn(
                 "px-3 py-1.5 text-[10px] font-bold rounded-md transition-all capitalize cursor-pointer",
                 tabSelecionada === tab
@@ -207,7 +210,10 @@ export default function TabsViagem({ viagem }: Readonly<Props>) {
         open={cancelarModalOpen}
         codigoViagem={viagem.codigo ?? null}
         handleCancelar={() => setCancelarModalOpen(false)}
-        handleConfirmar={() => { handleCancelarEdicao(); setCancelarModalOpen(false); }}
+        handleConfirmar={() => {
+          handleCancelarEdicao();
+          setCancelarModalOpen(false);
+        }}
       />
     </div>
   );

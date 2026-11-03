@@ -1,9 +1,11 @@
 "use client";
 
-import { TIPO_INCLUSAO_CONTROLE_TRADUCAO } from "@/src/app/constants";
-import { ControleOutput, TipoInclusaoEnum, TipoPesoM3Enum } from "@/src/modules/domain/viagem/schemas/viagem.schema";
-import { cn } from "@/src/modules/utils/css.util";
-import { dataHoraISO } from "@/src/modules/utils/data.util";
+import { TIPO_INCLUSAO_CONTROLE_TRADUCAO } from "@constants/traducao";
+import { ControleOutput } from "@modules/domain/viagem/schemas/dados-viagem/documentos/controle.schema";
+import { TipoInclusaoControleEmViagemEnum } from "@modules/domain/viagem/schemas/dados-viagem/documentos/tipo-inclusao.schema";
+import { TipoPesoM3Enum } from "@modules/domain/viagem/schemas/dados-viagem/documentos/tipo-medida.schema";
+import { cn } from "@modules/utils/css.util";
+import { dataHoraISO } from "@modules/utils/data.util";
 import { useState } from "react";
 
 type Props = {
@@ -90,9 +92,9 @@ export default function ApresentacaoConhecimentos({ grupo }: Readonly<Props>) {
                       <span
                         className={cn(
                           "px-1.5 py-0.5 rounded text-[8px] font-black uppercase",
-                          controle.tipoInclusao === TipoInclusaoEnum.AUTOMATICO
+                          controle.tipoInclusao === TipoInclusaoControleEmViagemEnum.AUTOMATICO
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : controle.tipoInclusao === TipoInclusaoEnum.MANUAL_GESTAO
+                            : controle.tipoInclusao === TipoInclusaoControleEmViagemEnum.MANUAL_GESTAO
                               ? "bg-blue-50 text-blue-700 border border-blue-200"
                               : "bg-amber-50 text-amber-700 border border-amber-200",
                         )}

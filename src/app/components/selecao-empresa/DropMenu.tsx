@@ -2,10 +2,10 @@
 
 import { Check, Search, X } from "lucide-react";
 import { EmpresaOutput } from '@modules/domain/empresa/schemas/empresa.schema';
-import { useSelecaoEmpresaContext } from "../../contexts/SelecaoEmpresaProvider";
-import { cn } from "@/src/modules/utils/css.util";
 import { useEffect, useState } from "react";
-import { useEmpresasContext } from "../../contexts/EmpresasProvider";
+import { cn } from "@modules/utils/css.util";
+import { useSelecaoEmpresaContext } from "@contexts/empresa/SelecaoEmpresaProvider";
+import { useEmpresasContext } from "@contexts/empresas/EmpresasProvider";
 
 type Props = {
   inputRef: React.RefObject<HTMLInputElement>;

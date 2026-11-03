@@ -1,30 +1,36 @@
 "use client";
 
 import { Clock, ChevronRight } from "lucide-react";
-import { ViagemListagemOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
-import { STATUS_CONFIG } from "../../constants";
 import { cn } from "@modules/utils/css.util";
 import { useRouter, useSearchParams } from "next/navigation";
-import { isTipoTransferenciaEscala, isTipoTransferenciaExtra, isTipoTransferenciaRotaAlternativa } from "@/src/modules/lib/validacoes";
+import { ViagemResumoOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
+import { STATUS_CONFIG } from "@constants/config-label";
+import { isTipoTransferenciaEscala, isTipoTransferenciaExtra, isTipoTransferenciaRotaAlternativa } from "@modules/lib/validacoes";
+
 
 type Props = {
-  viagem: ViagemListagemOutput;
+  viagem: ViagemResumoOutput;
 };
 
 export function CardViagem({ viagem }: Readonly<Props>) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const status = viagem.viagem.chaveStatus ? STATUS_CONFIG[viagem.viagem.chaveStatus] || STATUS_CONFIG.DESCONHECIDO : STATUS_CONFIG.SEM_STATUS;
-  
+  const status = viagem.viagem.chaveStatus
+    ? STATUS_CONFIG[viagem.viagem.chaveStatus] || STATUS_CONFIG.DESCONHECIDO
+    : STATUS_CONFIG.SEM_STATUS;
+
   const onClick = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("viagem", String(viagem.viagem.execucao.codigo));
     router.push(`?${params.toString()}`);
   };
 
-  const isSelected = searchParams.get("viagem") === String(viagem.viagem.execucao.codigo);
-  const podeSelecionar = searchParams.get("modoEdicao") === "false" || searchParams.get("modoEdicao") === null;
+  const isSelected =
+    searchParams.get("viagem") === String(viagem.viagem.execucao.codigo);
+  const podeSelecionar =
+    searchParams.get("modoEdicao") === "false" ||
+    searchParams.get("modoEdicao") === null;
 
   let tipoViagem = "Extra";
   let cssTipoViagem = "";
@@ -52,11 +58,13 @@ export function CardViagem({ viagem }: Readonly<Props>) {
     >
       <div className="flex flex-row justify-between items-center gap-1">
         <div className="flex items-center gap-1.5 overflow-hidden">
-          {viagem.viagem.codigo !== undefined && viagem.viagem.codigo !== null && viagem.viagem.codigo !== 0 && (
-            <span className="text-[10px] font-black text-primary bg-primary/10 px-1 rounded">
-              #{viagem.viagem.codigo}
-            </span>
-          )}
+          {viagem.viagem.codigo !== undefined &&
+            viagem.viagem.codigo !== null &&
+            viagem.viagem.codigo !== 0 && (
+              <span className="text-[10px] font-black text-primary bg-primary/10 px-1 rounded">
+                #{viagem.viagem.codigo}
+              </span>
+            )}
           <span
             className={cn(
               "inline-block text-[8px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider",

@@ -1,19 +1,21 @@
 "use client"
 
-import { ControleOutput, ViagemOutput } from "@/src/modules/domain/viagem/schemas/viagem.schema";
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import Controle from "./Controle";
+import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 
 type Props = {
   index: number;
 };
 
+type DescarregamentoViagem = ViagemOutput["documentos"][number]["descarregamento"];
+
 export default function ControlesPorDescarregamento({ index }: Readonly<Props>) {
   const [maximizado, setMaximizado] = useState<boolean>(false);
   
   const { control } = useFormContext<ViagemOutput>();
-  const informacoes = useWatch({ control, name: `documentos.${index}.descarregamento` });
+  const informacoes = useWatch({ control, name: `documentos.${index}.descarregamento` }) as DescarregamentoViagem;
   
   const handleExibirControles = () => setMaximizado(!maximizado);
 
@@ -41,7 +43,7 @@ export default function ControlesPorDescarregamento({ index }: Readonly<Props>) 
       </div>
 
       {maximizado &&
-        (informacoes.controles.length === 0 ? (
+        (informacoes.controles?.length === 0 ? (
           <p className="text-[10px] text-gray-400 italic py-2 text-center">
             Nenhum controle de carga atribuído a este descarregamento.
           </p>

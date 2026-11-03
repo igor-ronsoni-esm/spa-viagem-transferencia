@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Building2, ChevronDown } from 'lucide-react';
-import { useSelecaoEmpresaContext } from '../../contexts/SelecaoEmpresaProvider';
-import { cn } from '@/src/modules/utils/css.util';
 import DropMenu from './DropMenu';
+import { cn } from '@modules/utils/css.util';
+import { useSelecaoEmpresaContext } from '@contexts/empresa/SelecaoEmpresaProvider';
 
 export function SelecaoEmpresa() {
   const [menuAberto, setMenuAberto] = useState<boolean>(false);

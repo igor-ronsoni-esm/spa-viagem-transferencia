@@ -1,21 +1,22 @@
 "use client";
 
 import { MapPin, Search } from "lucide-react";
-import { useContext, useState } from "react";
-import { ViagemContext } from "../../context/ViagemContext";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { cn } from "@modules/utils/css.util";
 import SelecaoModal from "../../modals/SelecaoModal";
-import { TipoTransferenciaEnum, ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
-import { dataHoraISO } from "@/src/modules/utils/data.util";
-import FastcrudConsultasConfig from "@/src/configs/environment/fastcrud-consultas.config";
+import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { TipoTransferenciaEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-transferencia.schema";
+import { dataHoraISO } from "@modules/utils/data.util";
+import FastcrudConsultasConfig from "@configs/environment/fastcrud-consultas.config";
 
 export default function DadosLinhasTransferencia() {
   const [modalSelecaoLinhaOpen, setModalSelecaoLinhaOpen] = useState<boolean>(false);
   const [modalSelecaoTrechoOpen, setModalSelecaoTrechoOpen] = useState<boolean>(false);
   const [mostrarRotasRastreio, setMostrarRotasRastreio] = useState<boolean>(false);
 
-  const { modoEdicao } = useContext(ViagemContext);
+  const { modoEdicao } = useFormularioContext();
   const { register, watch } = useFormContext<ViagemOutput>();
   
   const viagemJaGerada =

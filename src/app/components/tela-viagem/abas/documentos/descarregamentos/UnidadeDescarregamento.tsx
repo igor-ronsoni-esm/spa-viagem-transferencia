@@ -1,18 +1,19 @@
 "use client";
 
 import { useContext } from "react";
-import { ViagemContext } from "../../../context/ViagemContext";
-import { DescarregamentoOutput, SituacaoDescarregamentoEnum, SituacaoDescarregamentoEnumOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { cn } from "@modules/utils/css.util";
 import { EmpresaOutput } from "@modules/domain/empresa/schemas/empresa.schema";
-import { useEmpresasContext } from "@/src/app/contexts/EmpresasProvider";
+import { DescarregamentoViagemOutput } from "@modules/domain/viagem/schemas/dados-viagem/descarregamento/descarregamento-viagem.schema";
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { useEmpresasContext } from "@contexts/empresas/EmpresasProvider";
+import { SituacaoDescarregamentoEnum, SituacaoDescarregamentoEnumOutput } from "@modules/domain/viagem/schemas/dados-viagem/descarregamento/situacao.schema";
 
 type Props = {
-  descarregamento: DescarregamentoOutput
+  descarregamento: DescarregamentoViagemOutput
 }
 
 export default function UnidadeDescarregamento({ descarregamento }: Readonly<Props>) {
-  const { modoEdicao } = useContext(ViagemContext);
+  const { modoEdicao } = useFormularioContext();
   const { empresas } = useEmpresasContext();
 
   const handleAlterarSituacao = (situacao: SituacaoDescarregamentoEnumOutput) => {

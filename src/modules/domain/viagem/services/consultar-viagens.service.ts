@@ -1,4 +1,4 @@
-import ViagemTransferenciaHttpProvider from "@/src/modules/infra/providers/viagem-transferencia/viagem-transferencia.http.provider";
+import ViagemTransferenciaHttpProvider from "@modules/infra/providers/viagem-transferencia/viagem-transferencia.http.provider";
 import { FiltroViagensInput, FiltroViagensSchema } from "../schemas/filtro-viagens.schema";
 import { ResultadoConsultaViagensOutput, ResultadoConsultaViagensSchema } from "../schemas/resultado-consulta-viagens.schema";
 import { ConsultarViagensUseCase } from "../usecases/consultar-viagens.usecase";

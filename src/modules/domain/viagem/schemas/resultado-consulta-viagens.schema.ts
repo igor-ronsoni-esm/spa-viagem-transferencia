@@ -1,64 +1,59 @@
 import { z } from "zod";
-import { OcorrenciaSchema, TipoSchema, TipoTransferenciaSchema } from "./viagem.schema";
+import { LinhaTransferenciaSchema } from "../../linhas-transferencia/schemas/linha-transferencia.schema";
+import { EmpresaSchema } from "../../empresa/schemas/empresa.schema";
+import { TipoViagemSchema } from "./dados-viagem/tipo-viagem.schema";
+import { EscalaSchema } from "./dados-viagem/escala-viagem.schema";
+import { TipoTransferenciaSchemaEnum } from "./dados-viagem/tipo-transferencia.schema";
+import { OcorrenciaSchemaEnum } from "./dados-viagem/ocorrencia/ocorrencias.schema";
 
-const empresa = z.object({
+const EmpresaEntradaSchema = z.object({
   codigo: z.number(),
   sigla: z.string(),
   nome: z.string()
-});
-
-const linha = z.object({
-  codigo: z.number(),
-  id: z.number(),
-  descricao: z.string()
-});
+}).transform(({ nome, ...resto }) => ({
+  ...resto,
+  descricao: nome,
+}))
+.pipe(EmpresaSchema);
 
 
-
-const execucao = z.object({
+const ExecucaoSchema = z.object({
   codigo: z.number()
 });
 
-const viagemConfiguracao = z.object({
+const ViagemControleSchema = z.object({
   codigo: z.number().nullable(),
-  tipoTransferencia: TipoTransferenciaSchema,
-  tipo: TipoSchema,
+  tipoTransferencia: TipoTransferenciaSchemaEnum,
+  tipo: TipoViagemSchema,
   status: z.string().nullable(),
-  chaveStatus: OcorrenciaSchema.nullable().catch("DESCONHECIDO").default("DESCONHECIDO"),
-  execucao: execucao,
+  chaveStatus: OcorrenciaSchemaEnum.nullable().catch("DESCONHECIDO").default("DESCONHECIDO"),
+  execucao: ExecucaoSchema,
   dataSaida: z.string(),
   dataChegada: z.string()
 });
 
-const EscalaSchema = z.object({
-  dia: z.number(),
-  dataInicio: z.string(),
-  dataFim: z.string()
-});
-
-const paginacao = z.object({
+const PaginacaoSchema = z.object({
   page: z.number(),
   limit: z.number(),
   total: z.number(),
   totalPaginas: z.number()
 });
 
-const ViagemSchema = z.object({
+const ViagemResumoSchema = z.object({
   codigo: z.number(),
-  linha: linha,
-  viagem: viagemConfiguracao,
-  origem: empresa,
-  destino: empresa,
+  linha: LinhaTransferenciaSchema,
+  viagem: ViagemControleSchema,
+  origem: EmpresaEntradaSchema,
+  destino: EmpresaEntradaSchema,
   quantidadeDocumentosEmViagem: z.number(),
   quantidadeDocsOrigemOuDestino: z.number()
 })
 
 export const ResultadoConsultaViagensSchema = z.object({
   escala: EscalaSchema,
-  paginacao: paginacao,
-  viagens: z.array(ViagemSchema)
+  paginacao: PaginacaoSchema,
+  viagens: z.array(ViagemResumoSchema)
 });
 
 export type ResultadoConsultaViagensOutput = z.infer<typeof ResultadoConsultaViagensSchema>;
-export type ViagemListagemOutput = z.infer<typeof ViagemSchema>;
-export type EscalaOutput = z.infer<typeof EscalaSchema>;
+export type ViagemResumoOutput = z.infer<typeof ViagemResumoSchema>;

@@ -1,4 +1,4 @@
-import FastcrudSearchHttpProvider from "@infra/providers/fastcrud-search/fastcrud-search.http.provider";
+import FastcrudSearchHttpProvider from "@modules/infra/providers/fastcrud-search/fastcrud-search.http.provider";
 import MetadataFastcrudSearchUseCase from "../usecases/metadata-fastcrud-search.usecase";
 import { mapeiaErroFastcrudSearch } from "./mapeia-erro-fastcrud-search";
 

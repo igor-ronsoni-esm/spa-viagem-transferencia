@@ -2,15 +2,15 @@
 
 import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { useContext, useState } from "react";
-import { ViagemContext } from "../../../context/ViagemContext";
+import { useState } from "react";
 import UnidadeDescarregamento from "./UnidadeDescarregamento";
 import { Plus, Truck } from "lucide-react";
+import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
 
 export default function Descarregamentos() {
   const [maximizado, setMaximizado] = useState<boolean>(false);
 
-  const { modoEdicao } = useContext(ViagemContext);
+  const { modoEdicao } = useFormularioContext();
   const { control } = useFormContext<ViagemOutput>();
   const { fields: descarregamentos } = useFieldArray({ control, name: "descarregamentos" });
 
