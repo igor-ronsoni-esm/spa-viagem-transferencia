@@ -3,7 +3,6 @@ import { EmpresaSchema } from "../../empresa/schemas/empresa.schema";
 import { TipoViagemSchema } from "./dados-viagem/tipo-viagem.schema";
 import { TipoMotoristaSchemaEnum } from "./dados-viagem/motorista/tipo-motorista.schema";
 import { OcorrenciaViagemSchema } from "./dados-viagem/ocorrencia/ocorrencia-viagem.schema";
-import { TipoVeiculoSchemaEnum } from "./dados-viagem/veiculo/tipo-veiculo.schema";
 import { OcorrenciaSchemaEnum } from "./dados-viagem/ocorrencia/ocorrencias.schema";
 import { TipoTransferenciaSchemaEnum } from "./dados-viagem/tipo-transferencia.schema";
 import { TipoPesoM3Enum, TipoPesoM3SchemaEnum } from "./dados-viagem/documentos/tipo-medida.schema";
@@ -15,23 +14,11 @@ import { DescarregamentoDocumentosSchema } from "./dados-viagem/descarregamento/
 import { DescarregamentoViagemSchema } from "./dados-viagem/descarregamento/descarregamento-viagem.schema";
 import { DocumentoFiscalSchema } from "./dados-viagem/documento-fiscal/manifesto.schema";
 import { VeiculoViagemSchema } from "./dados-viagem/veiculo/veiculo-viagem.schema";
-import { VeiculoSchema } from "./dados-viagem/veiculo/veiculo.schema";
 import { LinhaTransferenciaSchema } from "../../linhas-transferencia/schemas/linha-transferencia.schema";
-
-const TipoVeiculoSubSchemaEnum = z
-  .enum(["P", "A", "D", "T"])
-  .transform((tipo) => {
-    const tipos = {
-      P: "PROPRIO",
-      A: "AGREGADO",
-      D: "DIARISTA",
-      T: "TERCEIRO",
-      DESCONHECIDO: "DESCONHECIDO",
-    } as const;
-
-    return tipos[tipo] ?? "DESCONHECIDO";
-  })
-  .pipe(TipoVeiculoSchemaEnum)
+import { VeiculoSchema } from "@modules/domain/veiculos/schemas/veiculo.schema";
+import { TipoVeiculoSubSchemaEnum } from "@modules/domain/veiculos/schemas/tipo-veiculo.sub-schema";
+import { TrechoSchema } from "@modules/domain/linhas-transferencia/schemas/trecho.schema";
+import { TipoRodadoVeiculoSubSchema } from "@modules/domain/veiculos/schemas/tipo-rodado-veiculo.sub-schema";
 
 const TipoMotoristaSubSchemaEnum = z
   .enum(["T", "C", "R"])
@@ -150,14 +137,22 @@ export const ViagemSchema = z.object({
   tipoTransferencia: TipoTransferenciaSubSchemaEnum,
   extraTipo: ExtraTipoSubSchemaUnion.nullable(),
   linhaLancamento: LinhaLancamentoSubSchema,
-  linha: LinhaTransferenciaSchema,
+  linha: LinhaTransferenciaSchema.extend({
+    trecho: TrechoSchema.extend({
+      tipoVeiculoPrincipal: TipoRodadoVeiculoSubSchema,
+      tipoVeiculoSecundario: TipoRodadoVeiculoSubSchema.nullable(),
+    }),
+  }),
   previsaoSaida: z.string(),
   rastreio: RastreioSubSchema,
-  veiculos: z.array(VeiculoViagemSchema.extend({
-    veiculo: VeiculoSchema.extend({
-      tipo: TipoVeiculoSubSchemaEnum
-    })
-  })),
+  veiculos: z.array(VeiculoViagemSchema
+    .extend({
+      veiculo: VeiculoViagemSchema.shape.veiculo
+        .extend({
+          tipo: TipoVeiculoSubSchemaEnum,
+          tipoRodado: TipoRodadoVeiculoSubSchema,
+        })
+    })),
   motoristas: z.array(MotoristaViagemSchema.extend({
     tipo: TipoMotoristaSubSchemaEnum
   })),
@@ -169,4 +164,7 @@ export const ViagemSchema = z.object({
   documentosFiscais: z.array(DocumentoFiscalSchema),
 });
 
-export type ViagemOutput = z.infer<typeof ViagemSchema>;
+export type ViagemOutput = z.output<typeof ViagemSchema>;
+
+export type ViagemInput = z.input<typeof ViagemSchema>;
+

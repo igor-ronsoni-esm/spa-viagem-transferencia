@@ -4,11 +4,11 @@ import { useContext, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { Plus, Users } from "lucide-react";
-import SelecaoModal from "../../modals/SelecaoModal";
 import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
 import { TipoMotoristaEnum } from "@modules/domain/viagem/schemas/dados-viagem/motorista/tipo-motorista.schema";
 import { cn } from "@modules/utils/css.util";
 import FastcrudConsultasConfig from "@configs/environment/fastcrud-consultas.config";
+import SelecaoModal from "@components/tela-viagem/modals/selecao-dados/SelecaoModal";
 
 export default function DadosMotoristas() {
   const [modalSelecaoMotoristaOpen, setModalSelecaoMotoristaOpen] = useState<boolean>(false);
@@ -108,6 +108,18 @@ export default function DadosMotoristas() {
           <Plus className="w-3.5 h-3.5" /> Selecionar Motorista(s)
         </button>
       )}
+      {/* <SelecaoModal<Cliente>
+        open={aberto}
+        titulo="Selecionar Cliente"
+        colunas={colunasClientes}
+        dados={clientes}
+        schemaLinha={clienteSchema}
+        onClose={() => setAberto(false)}
+        onSelect={(cliente) => {
+          console.log(cliente.nome);
+          setAberto(false);
+        }}
+      />
       <SelecaoModal
         open={modalSelecaoMotoristaOpen}
         chave={FastcrudConsultasConfig.get().buscarMotoristas}
@@ -119,7 +131,7 @@ export default function DadosMotoristas() {
         filtrosFixos={[
           { field: "EMP_CODIGO", operation: "=", value: String(watch("codigoAgencia")) },// TODO: Validar quando é possivel buscar todos os motoristas
         ]}
-      />
+      /> */}
     </div>
   );
 }

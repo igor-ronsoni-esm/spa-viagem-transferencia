@@ -40,8 +40,6 @@ function dismiss(id: string) {
   emit();
 }
 
-// API imperativa: pode ser chamada de qualquer lugar (handlers, services, etc),
-// sem precisar estar dentro de um componente React.
 export const toast = {
   success: (message: string, duration?: number) =>
     addToast("success", message, duration),
@@ -52,7 +50,6 @@ export const toast = {
   dismiss,
 };
 
-// Hook interno usado apenas pelo <Toaster /> para se inscrever nas mudanças.
 export function useToasts() {
   const [state, setState] = useState<ToastItem[]>(toasts);
 

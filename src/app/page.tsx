@@ -6,6 +6,7 @@ import { requireNumber } from "@modules/utils/number.util";
 import { redirect } from "next/navigation";
 import { EmpresasProvider } from "@contexts/empresas/EmpresasProvider";
 import { SelecaoEmpresaProvider } from "@contexts/empresa/SelecaoEmpresaProvider";
+import { VeiculosProvider } from "@contexts/veiculos/VeiculosProvider";
 
 type Props = {
   searchParams: Promise<{
@@ -56,33 +57,35 @@ export default async function PageRoot({ searchParams }: Readonly<Props>) {
 
     redirect(`?${queryParams.toString()}`);
   }
-  
+
   return (
     <div className="min-w-screen min-h-screen bg-page-bg flex">
       <main className="flex-1 flex overflow-hidden h-screen">
         <EmpresasProvider>
-          <SelecaoEmpresaProvider>
-            <SideBarContent />
-            <div className="flex-1 bg-page-bg overflow-hidden flex flex-col relative">
-              <AnimatePresence mode="wait">
-                {viagem ? (
-                  <TelaViagem codigoViagem={Number(viagem)} />
-                ) : (
-                  <PainelOperacao
-                    dataSelecionada={new Date(data)}
-                    total={
-                      requireNumber(realizadas) +
-                      requireNumber(prontas) +
-                      requireNumber(pendentes)
-                    }
-                    realizadas={requireNumber(realizadas)}
-                    prontas={requireNumber(prontas)}
-                    pendentes={requireNumber(pendentes)}
-                  />
-                )}
-              </AnimatePresence>
-            </div>
-          </SelecaoEmpresaProvider>
+          <VeiculosProvider>
+            <SelecaoEmpresaProvider>
+              <SideBarContent />
+              <div className="flex-1 bg-page-bg overflow-hidden flex flex-col relative">
+                <AnimatePresence mode="wait">
+                  {viagem ? (
+                    <TelaViagem codigoViagem={Number(viagem)} />
+                  ) : (
+                    <PainelOperacao
+                      dataSelecionada={new Date(data)}
+                      total={
+                        requireNumber(realizadas) +
+                        requireNumber(prontas) +
+                        requireNumber(pendentes)
+                      }
+                      realizadas={requireNumber(realizadas)}
+                      prontas={requireNumber(prontas)}
+                      pendentes={requireNumber(pendentes)}
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
+            </SelecaoEmpresaProvider>
+          </VeiculosProvider>
         </EmpresasProvider>
       </main>
     </div>

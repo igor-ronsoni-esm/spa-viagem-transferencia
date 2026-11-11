@@ -5,11 +5,13 @@ import { ResultadoConsultaViagensOutput } from "@modules/domain/viagem/schemas/r
 import { ConsultarViagensUseCase } from "@modules/domain/viagem/usecases/consultar-viagens.usecase";
 import { container } from "@modules/domain/DI";
 import { dataAoMeioDia } from "@modules/utils/data.util";
-import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
+import { ViagemOutput, ViagemInput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { ConsultarViagemPorCodigoExecucaoUseCase } from "@modules/domain/viagem/usecases/consultar-viagem-por-codigo-execucao.usecase";
 import { EmpresaOutput } from "@modules/domain/empresa/schemas/empresa.schema";
 import BuscarTodasEmpresasUseCase from "@modules/domain/empresa/usecases/buscar-todas-empresas.usecase";
-
+import SalvarViagemUseCase from "@modules/domain/viagem/usecases/salvar-viagem.usecase";
+import { VeiculoOutput } from "@modules/domain/veiculos/schemas/veiculo.schema";
+import BuscarTodosVeiculosUseCase from "@modules/domain/veiculos/usecases/buscar-todos-veiculos.usecase";
 
 export async function buscarViagens(dataSelecionada: string, empresa: number): Promise<ResponseServerAction<ResultadoConsultaViagensOutput>> {
   try {
@@ -70,6 +72,38 @@ export async function buscarEmpresas(): Promise<ResponseServerAction<EmpresaOutp
         err instanceof Error
             ? err.message
             : "Erro inesperado ao buscar empresas.",
+    );
+  }
+}
+
+export async function buscarVeiculos(): Promise<ResponseServerAction<VeiculoOutput[]>> {
+  try {
+    const usecase: BuscarTodosVeiculosUseCase = container.get("BuscarTodosVeiculosUseCase");
+    const resultado = await usecase.execute();
+
+    return success(resultado);
+  } catch (err) {
+    console.error("[BUSCAR_VEICULOS] Erro ao buscar veiculos:", err);
+    return error(
+        err instanceof Error
+            ? err.message
+            : "Erro inesperado ao buscar veiculos.",
+    );
+  }
+}
+
+export async function salvarViagem(viagem: ViagemInput): Promise<ResponseServerAction<void>> {
+  try {
+    const usecase: SalvarViagemUseCase = container.get("SalvarViagemUseCase");
+    const resultado = await usecase.execute(viagem);
+
+    return success(resultado);
+  } catch (err) {
+    console.error("[SALVAR_VIAGEM] Erro ao salvar viagem:", err);
+    return error(
+        err instanceof Error
+            ? err.message
+            : "Erro inesperado ao salvar viagem.",
     );
   }
 }

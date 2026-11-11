@@ -31,6 +31,8 @@ import { ViagemResumoOutput } from "@modules/domain/viagem/schemas/resultado-con
 import { EscalaOutput } from "@modules/domain/viagem/schemas/dados-viagem/escala-viagem.schema";
 import { useSelecaoEmpresaContext } from "@contexts/empresa/SelecaoEmpresaProvider";
 import { useEmpresasContext } from "@contexts/empresas/EmpresasProvider";
+import { useVeiculosContext } from "@contexts/veiculos/VeiculosProvider";
+import { useToasts } from "@modules/components/feedbacks/toast/use-toast";
 
 enum TabId {
   PENDENTES = "PENDENTES",
@@ -48,7 +50,10 @@ const tabs = [
 
 export default function SideBarContent() {
   const { loading: loadingEmpresas, handleBuscarEmpresas } = useEmpresasContext();
+  const { loading: loadingVeiculos, handleBuscarVeiculos } = useVeiculosContext();
+
   const { empresa } = useSelecaoEmpresaContext();
+  useToasts();
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -141,6 +146,8 @@ export default function SideBarContent() {
     void fetchViagens();
   }, [dataSelecionada, empresa]);
 
+  const isLoading = loading || loadingEmpresas || loadingVeiculos;
+
   return (
     <div className="flex flex-col border-r border-gray-100 bg-white shrink-0 w-80 p-2">
       <div className="border-b border-gray-50 flex flex-col gap-1 shrink-0">
@@ -150,26 +157,30 @@ export default function SideBarContent() {
       <div className="flex flex-col gap-1 overflow-y-hidden">
         <div className="flex items-center justify-between mt-1">
           <Tooltip title="Cadastrar nova Viagem Extra ou Rota Alternativa" arrow>
-            <button
-              onClick={() => {}}
-              disabled={!podeSelecionar}
-              className={cn("flex items-center gap-1.5 px-2.5 py-1.5 bg-primary text-white rounded-lg text-[9px] font-black shadow-md shadow-primary/10 ", 
-                podeSelecionar ? "hover:opacity-90 transition-all cursor-pointer" : "opacity-50 cursor-not-allowed")}
-            >
-              <Plus className="w-3 h-3" /> NOVA VIAGEM
-            </button>
+            <span>
+              <button
+                onClick={() => {}}
+                disabled={!podeSelecionar}
+                className={cn("flex items-center gap-1.5 px-2.5 py-1.5 bg-primary text-white rounded-lg text-[9px] font-black shadow-md shadow-primary/10 ", 
+                  podeSelecionar ? "hover:opacity-90 transition-all cursor-pointer" : "opacity-50 cursor-not-allowed")}
+              >
+                <Plus className="w-3 h-3" /> NOVA VIAGEM
+              </button>
+            </span>
           </Tooltip>
           <div className="flex flex-row items-center gap-1">
             <Tooltip
-              title={`Recarregar empresas`}
+              title={`Recarregar empresas, veículos e motoristas`}
               arrow
             >
-               <button
-                onClick={handleBuscarEmpresas}
-                className="p-1.5 rounded-lg bg-gray-50 text-gray-400 hover:text-primary transition-all cursor-pointer"
-              >
-                <ListRestart className="w-4 h-4" />
-              </button>
+              <span>
+                <button
+                  onClick={() => { handleBuscarEmpresas(); handleBuscarVeiculos(); }}
+                  className="p-1.5 rounded-lg bg-gray-50 text-gray-400 hover:text-primary transition-all cursor-pointer"
+                >
+                  <ListRestart className="w-4 h-4" />
+                </button>
+              </span>
             </Tooltip>
             <Tooltip
               title={`Escala de ${escala && dataHoraISO(new Date(escala.dataInicio))} até ${escala && dataHoraISO(new Date(escala.dataFim))}`}
@@ -180,14 +191,16 @@ export default function SideBarContent() {
               </span>
             </Tooltip>
             <Tooltip title="Atualizar viagens" arrow>
-              <button
-                onClick={fetchViagens}
-                className="p-1.5 rounded-lg bg-gray-50 text-gray-400 hover:text-primary transition-all cursor-pointer"
-              >
-                <RefreshCw
-                  className={cn("w-4 h-4", (loading || loadingEmpresas) && "animate-spin")}
-                />
-              </button>
+              <span>
+                <button
+                  onClick={fetchViagens}
+                  className="p-1.5 rounded-lg bg-gray-50 text-gray-400 hover:text-primary transition-all cursor-pointer"
+                >
+                  <RefreshCw
+                    className={cn("w-4 h-4", (isLoading) && "animate-spin")}
+                  />
+                </button>
+              </span>
             </Tooltip>
           </div>
         </div>
@@ -218,12 +231,12 @@ export default function SideBarContent() {
             </button>
           ))}
         </div>
-        {loading || loadingEmpresas ? (
+        {isLoading? (
           <SideBarSkeleton />
         ) : (
           <ListagemViagens viagens={viagensPesquisadas} />
         )}
-        {!loading && !loadingEmpresas && viagensPesquisadas.length <= 0 && (
+        {!isLoading && viagensPesquisadas.length <= 0 && (
           <div className="text-center py-10 opacity-40">
             <ClipboardCheck className="w-8 h-8 mx-auto mb-2" />
             <p className="text-[10px] font-bold">Nenhuma viagem</p>

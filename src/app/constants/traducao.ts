@@ -3,8 +3,8 @@ import { TraducaoType } from "./type";
 import { TipoViagemEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-viagem.schema";
 import { TipoTransferenciaEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-transferencia.schema";
 import { StatusDocumentoFiscalEnum } from "@modules/domain/viagem/schemas/dados-viagem/documento-fiscal/status-documento-fiscal.schema";
-import { TipoVeiculoEnum } from "@modules/domain/viagem/schemas/dados-viagem/veiculo/tipo-veiculo.schema";
 import { TipoInclusaoControleEmViagemEnum } from "@modules/domain/viagem/schemas/dados-viagem/documentos/tipo-inclusao.schema";
+import { TipoVeiculoEnum } from "@modules/domain/veiculos/schemas/tipo-veiculo.schema";
 
 type Traducao = Record<string, TraducaoType>;
 
@@ -15,6 +15,21 @@ export const EXTRA_TIPO_TRADUCAO: Traducao = {
   4: { label: "Atrasos na Chegada" },
   5: { label: "Operação Comprometida" },
   6: { label: "Transferência de Veículo" },
+} as const;
+
+export const TIPO_RODADO_VEICULO_TRADUCAO: Traducao = {
+  1: { label: "UTILITARIO" },
+  2: { label: "AUTOMOVEL" },
+  3: { label: "MEDIO" },
+  4: { label: "TOCO" },
+  5: { label: "TRUCK" },
+  6: { label: "REBOQUE (JULIETA)" },
+  7: { label: "SEMI-REBOQUE (CARRETA)" },
+  8: { label: "CAVALO MECANICO" },
+  9: { label: "OUTROS" },
+  10: { label: "ONIBUS" },
+  11: { label: "VAN" },
+  12: { label: "EMBARCAÇÃO" },
 } as const;
 
 export const STATUS_TRADUCAO: Traducao = {

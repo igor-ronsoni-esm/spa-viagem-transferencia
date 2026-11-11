@@ -4,12 +4,12 @@ import { MapPin, Search } from "lucide-react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { cn } from "@modules/utils/css.util";
-import SelecaoModal from "../../modals/SelecaoModal";
 import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
 import { TipoTransferenciaEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-transferencia.schema";
 import { dataHoraISO } from "@modules/utils/data.util";
 import FastcrudConsultasConfig from "@configs/environment/fastcrud-consultas.config";
+import SelecaoModal from "@components/tela-viagem/modals/selecao-dados/SelecaoModal";
 
 export default function DadosLinhasTransferencia() {
   const [modalSelecaoLinhaOpen, setModalSelecaoLinhaOpen] = useState<boolean>(false);

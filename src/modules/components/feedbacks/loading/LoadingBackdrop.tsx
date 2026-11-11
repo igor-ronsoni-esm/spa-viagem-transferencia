@@ -1,9 +1,9 @@
 "use client";
 
-import { Backdrop, Paper } from "@mui/material";
 import { Loading } from "./Loading";
+import { motion } from "motion/react";
 
-type LoadingBackdropProps = {
+type Props = {
   open: boolean;
   description?: string;
   progress?: boolean;
@@ -15,35 +15,29 @@ export const LoadingBackdrop = ({
   description = "Aguarde...",
   progress,
   value,
-}: LoadingBackdropProps) => {
+}: Readonly<Props>) => {
   if (!open) return null;
   
   return (
-    <Backdrop
-      open={open}
-      sx={{
-        zIndex: () => 1500,
-        color: "#fff",
-      }}
+    <motion.div
+      key="loading-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 bg-black/40 backdrop-blur-sm z-80 flex items-center justify-center p-4"
     >
-      <Paper
-        elevation={3}
-        sx={{
-          width: "25%",
-          minHeight: "30%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 4,
-          borderRadius: 2,
-        }}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col p-10 text-center gap-4"
       >
-        <Loading
+         <Loading
           description={description}
           progress={progress}
           value={value}
         />
-      </Paper>
-    </Backdrop>
+      </motion.div>
+    </motion.div>
   );
 };

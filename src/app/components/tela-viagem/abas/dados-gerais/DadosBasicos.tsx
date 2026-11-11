@@ -1,13 +1,12 @@
 "use client";
 
 import { Clipboard } from "lucide-react";
-import { useContext } from "react";
 import { useFormContext } from "react-hook-form";
 import type { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { cn } from "@modules/utils/css.util";
 
 import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
-import { TipoViagemEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-viagem.schema";
+import { TipoViagemEnum, TipoViagemEnumOutput } from "@modules/domain/viagem/schemas/dados-viagem/tipo-viagem.schema";
 import { EXTRA_TIPO_TRADUCAO, TIPO_TRANSFERENCIA_TRADUCAO, TIPO_VIAGEM_TRADUCAO } from "@constants/traducao";
 import { TipoTransferenciaEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-transferencia.schema";
 
@@ -15,8 +14,15 @@ export default function DadosBasicos() {
   const { modoEdicao } = useFormularioContext();
   const { register, watch } = useFormContext<ViagemOutput>();
 
+  const isTipoEscala = watch("tipoTransferencia") === TipoTransferenciaEnum.ESCALA;
+  const isTipoExtra = watch("tipoTransferencia") === TipoTransferenciaEnum.EXTRA;
+
   const podeEditarTipoViagem = modoEdicao;
-  const podeEditarTipoTransferencia = modoEdicao;
+  const podeEditarTipoTransferencia = modoEdicao && !isTipoEscala;
+  const podeEdicarDataViagem = modoEdicao && !isTipoEscala;
+  const podeEditarTipoExtra = modoEdicao && isTipoExtra;
+  
+  const handleMudarTipoViagem = (value: TipoViagemEnumOutput) => {}
 
   return (
     <div className="flex flex-col bg-white rounded-xl border border-gray-100 p-4 shadow-xs space-y-4 w-full h-auto">
@@ -46,11 +52,11 @@ export default function DadosBasicos() {
           </label>
           <input
             type="date"
-            disabled={!modoEdicao}
+            disabled={!podeEdicarDataViagem}
             {...register("dataViagem")}
             className={cn(
               "w-full border border-gray-200 rounded-lg p-1.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none font-medium transition-all",
-              modoEdicao
+              podeEdicarDataViagem
                 ? "bg-white text-gray-850 cursor-text"
                 : "bg-gray-50 text-gray-500 cursor-not-allowed select-none pointer-events-none",
             )}
@@ -64,6 +70,7 @@ export default function DadosBasicos() {
           <select
             disabled={!podeEditarTipoViagem}
             {...register("tipoViagem")}
+            onChange={(e) => handleMudarTipoViagem(e.target.value as TipoViagemEnumOutput)}
             className={cn(
               "w-full border border-gray-200 rounded-lg p-1.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none font-medium transition-all",
               podeEditarTipoViagem
@@ -109,11 +116,11 @@ export default function DadosBasicos() {
               </span>
             </label>
             <select
-              disabled={!podeEditarTipoTransferencia}
+              disabled={!podeEditarTipoExtra}
               {...register("extraTipo")}
               className={cn(
                 "w-full border rounded-lg p-1.5 text-xs focus:ring-2 outline-none font-medium transition-all",
-                podeEditarTipoTransferencia
+                podeEditarTipoExtra
                   ? "bg-white border-primary/40 text-gray-800 cursor-pointer focus:ring-primary/20"
                   : "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed select-none pointer-events-none",
               )}

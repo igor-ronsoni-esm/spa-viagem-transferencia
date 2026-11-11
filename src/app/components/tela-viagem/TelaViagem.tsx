@@ -2,18 +2,18 @@
 
 import { fetchSafe } from "@modules/utils/fetches/fetch-safe";
 import { buscarViagemPorCodigoExecucao } from "../../server-actions";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Loading } from "@modules/components/feedbacks/loading/Loading";
 import { motion } from "motion/react";
 import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { FormProvider, useForm } from "react-hook-form";
 import Header from "./Header";
-import TabsViagem from "./TabsViagem";
 import ApresentacaoTelas from "./ApresentacaoTelas";
 import Image from "next/image";
 import { ViagemProvider } from "@contexts/viagem/ViagemProvider";
-import { FormularioProvider, useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { FormularioProvider } from "@contexts/formulario/FormularioProvider";
 import { useSelecaoEmpresaContext } from "@contexts/empresa/SelecaoEmpresaProvider";
+import LoadingViagem from "@components/loading/LoadingViagem";
 
 type Props = {
   codigoViagem: number;
@@ -24,7 +24,6 @@ export default function TelaViagem({ codigoViagem }: Readonly<Props>) {
   const [viagem, setViagem] = useState<ViagemOutput | null>(null);
   
   const metodos = useForm<ViagemOutput>();
-  const { handleSalvarEdicao } = useFormularioContext();
   const { empresa } = useSelecaoEmpresaContext();
 
   const fetchViagem = async () => {
@@ -46,13 +45,7 @@ export default function TelaViagem({ codigoViagem }: Readonly<Props>) {
     fetchViagem();
   }, [codigoViagem, empresa]);
 
-  if (loading)
-    return (
-      <div className="flex flex-col flex-1 items-center justify-center">
-        <Loading />
-        <p>Carregando viagem...</p>
-      </div>
-    );
+  if (loading) return <LoadingViagem texto="Carregando viagem..." />
   
   if (!loading && !viagem)
     return (
@@ -79,14 +72,11 @@ export default function TelaViagem({ codigoViagem }: Readonly<Props>) {
       <div className="flex flex-1 flex-col min-h-0">
         <Header viagem={viagem} />
         <ViagemProvider>
-          <FormularioProvider>
-            <FormProvider {...metodos}>
-              <form onSubmit={metodos.handleSubmit(handleSalvarEdicao)} className="flex flex-1 flex-col min-h-0">
-                <TabsViagem viagem={viagem} />
-                <ApresentacaoTelas viagem={viagem}/>
-              </form>
-            </FormProvider>
-          </FormularioProvider>
+          <FormProvider {...metodos}>
+            <FormularioProvider>
+              <ApresentacaoTelas viagem={viagem}/>
+            </FormularioProvider>
+          </FormProvider>
         </ViagemProvider>
       </div>
     </motion.div>

@@ -107,30 +107,32 @@ export default function SelecaoData() {
       </div>
 
       <Tooltip title="Selecionar data escala" arrow>
-        <button
-          type="button"
-          disabled={!podeSelecionar}
-          onClick={abrirSeletor}
-          className="relative group shrink-0 cursor-pointer"
-        >
-          <CalendarIcon className={cn("w-5 h-5 text-gray-300",
-            podeSelecionar ? "group-hover:text-primary transition-colors pointer-events-none" : "opacity-50 cursor-not-allowed"
-          )} />
+        <span>
+          <button
+            type="button"
+            disabled={!podeSelecionar}
+            onClick={abrirSeletor}
+            className="relative group shrink-0 cursor-pointer"
+          >
+            <CalendarIcon className={cn("w-5 h-5 text-gray-300",
+              podeSelecionar ? "group-hover:text-primary transition-colors pointer-events-none" : "opacity-50 cursor-not-allowed"
+            )} />
 
-          <input
-            ref={inputDataRef}
-            type="date"
-            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full sr-only"
-            value={dataBase}
-            onChange={(e) => {
-              const novaData = e.target.value;
+            <input
+              ref={inputDataRef}
+              type="date"
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full sr-only"
+              value={dataBase}
+              onChange={(e) => {
+                const novaData = e.target.value;
 
-              if (novaData) {
-                handleAlterarDataSelecionada(novaData);
-              }
-            }}
-          />
-        </button>
+                if (novaData) {
+                  handleAlterarDataSelecionada(novaData);
+                }
+              }}
+            />
+          </button>
+        </span>
       </Tooltip>
     </div>
   );

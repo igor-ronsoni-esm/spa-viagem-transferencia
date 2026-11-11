@@ -11,6 +11,7 @@ export default class EnvConfiguration {
   public api_fastcrud_search: ClientEnvConfig;
   public api_viagem_transferencia: ClientEnvConfig;
   public api_empresas: ClientEnvConfig;
+  public api_veiculos: ClientEnvConfig;
 
   public help: ClientEnvConfig;
 
@@ -31,6 +32,12 @@ export default class EnvConfiguration {
       secret: process.env.API_VIAGEM_TRANSFERENCIA_SECRET ?? "",
     };
     this.api_empresas = { host: process.env.API_EMPRESAS_HOST ?? "" };
+    this.api_veiculos = { 
+      host: process.env.API_VEICULOS_HOST ?? "",
+      headers: {
+        apiKey: process.env.API_VEICULOS_SECRET ?? ""
+      }
+    };
   }
 
   public static get(): EnvConfiguration {

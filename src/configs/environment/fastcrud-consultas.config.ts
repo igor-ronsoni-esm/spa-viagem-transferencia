@@ -9,7 +9,7 @@ export default class FastcrudConsultasConfig {
   private constructor() {
     this.buscarLinhasTransferencia = ""
     this.buscarTrechosPorLinhaTransferencia = ""
-    this.buscarVeiculos = ""
+    this.buscarVeiculos = "c9f3b861-7e14-4a20-d596-2b38a0e57c19"
     this.buscarMotoristas = "";
   }
 

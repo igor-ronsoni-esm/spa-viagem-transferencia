@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import { Suspense } from "react";
+import { Toaster } from "@modules/components/feedbacks/toast/Toaster";
 
 export const metadata: Metadata = {
   title: "SPA Viagem CIOT",
@@ -17,6 +18,7 @@ export default function RootLayout({
           className="flex h-screen w-full overflow-hidden min-h-0"
           data-testid="layout"
         >
+          <Toaster />
           <Suspense fallback={<>carregando...</>}>{children}</Suspense>
         </div>
       </body>
