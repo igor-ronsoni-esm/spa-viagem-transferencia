@@ -63,7 +63,7 @@ export default function ApresentacaoConhecimentos({ grupo }: Readonly<Props>) {
               <tbody className="divide-y divide-gray-100">
                 {(grupo.controles || []).map((controle) => {
                   return (controle.ctes || []).map((cte, index) => (
-                    <tr key={index} className="hover:bg-white transition-colors text-[10px]">
+                    <tr key={index} className="hover:bg-white transition-colors text-[12px]">
                       <td className="p-2 font-mono font-bold text-gray-800">{controle.chave}</td>
                       <td className="p-2 font-mono font-bold text-gray-800">{cte.numero}</td>
                       <td className="p-2 font-semibold text-gray-700">{cte.quantidade}</td>
