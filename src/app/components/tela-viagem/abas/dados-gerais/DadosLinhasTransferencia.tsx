@@ -8,7 +8,6 @@ import { ViagemOutput } from "@modules/domain/viagem/schemas/viagem.schema";
 import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
 import { TipoTransferenciaEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-transferencia.schema";
 import { dataHoraISO } from "@modules/utils/data.util";
-import FastcrudConsultasConfig from "@configs/environment/fastcrud-consultas.config";
 import SelecaoModal from "@components/tela-viagem/modals/selecao-dados/SelecaoModal";
 
 export default function DadosLinhasTransferencia() {
@@ -223,7 +222,7 @@ export default function DadosLinhasTransferencia() {
         </div>
       )}
 
-      <SelecaoModal
+      {/* <SelecaoModal
         open={modalSelecaoLinhaOpen}
         chave={FastcrudConsultasConfig.get().buscarLinhasTransferencia}
         onClose={() => setModalSelecaoLinhaOpen(false)}
@@ -246,7 +245,7 @@ export default function DadosLinhasTransferencia() {
         filtrosFixos={[
           { field: "LIV_CODIGO", operation: "=", value: String(watch("linha.codigo")) },
         ]}
-      />
+      /> */}
     </div>
   );
 }

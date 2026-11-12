@@ -9,3 +9,5 @@ export const MotoristaViagemSchema = z.object({
     nome: z.string(),
   }),
 });
+
+export type MotoristaOutput = z.output<typeof MotoristaViagemSchema>;

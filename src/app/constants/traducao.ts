@@ -17,7 +17,7 @@ export const EXTRA_TIPO_TRADUCAO: Traducao = {
   6: { label: "Transferência de Veículo" },
 } as const;
 
-export const TIPO_RODADO_VEICULO_TRADUCAO: Traducao = {
+export const TIPO_RODADO_VEICULO_TRADUCAO: Traducao = { // TODO: alterar isto para map e não para tradução
   1: { label: "UTILITARIO" },
   2: { label: "AUTOMOVEL" },
   3: { label: "MEDIO" },

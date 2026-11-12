@@ -62,7 +62,7 @@ export default async function PageRoot({ searchParams }: Readonly<Props>) {
     <div className="min-w-screen min-h-screen bg-page-bg flex">
       <main className="flex-1 flex overflow-hidden h-screen">
         <EmpresasProvider>
-          <VeiculosProvider>
+          {/* <VeiculosProvider> */}
             <SelecaoEmpresaProvider>
               <SideBarContent />
               <div className="flex-1 bg-page-bg overflow-hidden flex flex-col relative">
@@ -85,7 +85,7 @@ export default async function PageRoot({ searchParams }: Readonly<Props>) {
                 </AnimatePresence>
               </div>
             </SelecaoEmpresaProvider>
-          </VeiculosProvider>
+          {/* </VeiculosProvider> */}
         </EmpresasProvider>
       </main>
     </div>

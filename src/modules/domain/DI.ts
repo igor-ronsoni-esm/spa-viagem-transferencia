@@ -5,6 +5,8 @@ import { ConsultarViagemPorCodigoExecucaoService } from "./viagem/services/consu
 import BuscarTodasEmpresasService from "./empresa/services/buscar-todas-empresas.service";
 import SalvarViagemService from "./viagem/services/salvar-viagem.service";
 import BuscarTodosVeiculosService from "./veiculos/services/buscar-todos-veiculos.service";
+import BuscarColunasService from "./api-consulta/services/buscar-colunas.service";
+import FiltrarDadosService from "./api-consulta/services/filtrar-dados.service";
 
 const container = new ServiceContainer();
 
@@ -14,6 +16,7 @@ container.singleton("ConsultarViagemPorCodigoExecucaoUseCase", () => new Consult
 container.singleton("BuscarTodasEmpresasUseCase", () => new BuscarTodasEmpresasService());
 container.singleton("SalvarViagemUseCase", () => new SalvarViagemService());
 container.singleton("BuscarTodosVeiculosUseCase", () => new BuscarTodosVeiculosService());
-
+container.singleton("BuscarColunasUseCase", () => new BuscarColunasService());
+container.singleton("FiltrarDadosUseCase", () => new FiltrarDadosService());
 
 export { container };

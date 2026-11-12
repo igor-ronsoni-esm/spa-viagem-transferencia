@@ -13,6 +13,8 @@ export default class EnvConfiguration {
   public api_empresas: ClientEnvConfig;
   public api_veiculos: ClientEnvConfig;
 
+  public api_consulta: ClientEnvConfig;
+
   public help: ClientEnvConfig;
 
   private constructor() {
@@ -37,6 +39,14 @@ export default class EnvConfiguration {
       headers: {
         apiKey: process.env.API_VEICULOS_SECRET ?? ""
       }
+    };
+
+    this.api_consulta = { 
+      host: process.env.API_CONSULTA_HOST ?? "",
+      headers: {
+        token: process.env.API_CONSULTA_TOKEN ?? ""
+      },
+      secret: process.env.API_CONSULTA_SECRET ?? ""
     };
   }
 

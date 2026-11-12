@@ -19,6 +19,7 @@ import { VeiculoSchema } from "@modules/domain/veiculos/schemas/veiculo.schema";
 import { TipoVeiculoSubSchemaEnum } from "@modules/domain/veiculos/schemas/tipo-veiculo.sub-schema";
 import { TrechoSchema } from "@modules/domain/linhas-transferencia/schemas/trecho.schema";
 import { TipoRodadoVeiculoSubSchema } from "@modules/domain/veiculos/schemas/tipo-rodado-veiculo.sub-schema";
+import { TipoProprietarioTrechoEnumSchema } from "@modules/domain/linhas-transferencia/schemas/tipo-proprietario-trecho.schema";
 
 const TipoMotoristaSubSchemaEnum = z
   .enum(["T", "C", "R"])
@@ -59,6 +60,18 @@ const TipoTransferenciaSubSchemaEnum = z
   })
   .pipe(TipoTransferenciaSchemaEnum);
 
+const TipoProprietarioTrechoSubSchemaEnum = z
+  .enum(["T", "A", "P"])
+  .transform((tipo) => {
+    const tipos = {
+      T: "TERCEIRO",
+      A: "AGREGADO",
+      P: "PROPRIO",
+    } as const;
+
+    return tipos[tipo];
+  })
+  .pipe(TipoProprietarioTrechoEnumSchema);
 
 const TipoPesoM3DocumentoSubSchemaEnum = z
   .enum(["P", "M"])
@@ -141,6 +154,7 @@ export const ViagemSchema = z.object({
     trecho: TrechoSchema.extend({
       tipoVeiculoPrincipal: TipoRodadoVeiculoSubSchema,
       tipoVeiculoSecundario: TipoRodadoVeiculoSubSchema.nullable(),
+      tipoProprietarioVeiculo: TipoProprietarioTrechoSubSchemaEnum,
     }),
   }),
   previsaoSaida: z.string(),

@@ -8,32 +8,26 @@ import { Plus, Trash, Truck } from "lucide-react";
 import { cn } from "@modules/utils/css.util";
 import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
 import { TIPO_VEICULO_TRADUCAO } from "@constants/traducao";
-import { TipoRodadoVeiculoEnum } from "@modules/domain/veiculos/schemas/tipo-rodado.schema";
+import { TipoRodadoVeiculoEnum, TipoRodadoVeiculoEnumMap } from "@modules/domain/veiculos/schemas/tipo-rodado.schema";
 import { toast } from "@modules/components/feedbacks/toast/use-toast";
-import { ColunaSelecao, SearchFilter } from "@components/tela-viagem/modals/selecao-dados/types";
-import { useVeiculosContext } from "@contexts/veiculos/VeiculosProvider";
-import SelecaoModal from "@components/tela-viagem/modals/selecao-dados/SelecaoModal";
 import { Tooltip } from "@mui/material";
-
-const COLUNAS_VEICULO: ColunaSelecao[] = [
-  { campoSQL: "codigo", caption: "Código", tipoCampo: "integer", chavePrimaria: true },
-  { campoSQL: "placa", caption: "Placa", tipoCampo: "string" },
-  { campoSQL: "descricao", caption: "Descrição", tipoCampo: "string" },
-  { campoSQL: "tipo", caption: "Tipo", tipoCampo: "string" },
-  { campoSQL: "tipoRodado", caption: "Rodado", tipoCampo: "string" },
-];
+import SelecaoModalApi from "@components/tela-viagem/modals/selecao-dados/v2/SelecaoModalApi";
+import { FiltroInput } from "@modules/domain/api-consulta/schemas/filtro.schema";
+import { TipoTransferenciaEnum } from "@modules/domain/viagem/schemas/dados-viagem/tipo-transferencia.schema";
+import { TipoProprietarioTrechoEnum, TipoProprietarioTrechoMap } from "@modules/domain/linhas-transferencia/schemas/tipo-proprietario-trecho.schema";
+import { TipoEmpresaEnum, TipoEmpresaEnumMap } from "@modules/domain/empresa/schemas/tipo-empresa.schema";
+import ConsultasConfig from "@configs/environment/consultas.config";
 
 type VeiculoViagemType = ViagemOutput["veiculos"][number];
 
 export default function DadosVeiculos() {
   const [modalSelecaoVeiculoOpen, setModalSelecaoVeiculoOpen] = useState<boolean>(false);
-  const [filtrosFixoSelecaoVeiculos, setFiltrosFixoSelecaoVeiculos] = useState<SearchFilter[]>([]);
+  const [filtrosFixoSelecaoVeiculos, setFiltrosFixoSelecaoVeiculos] = useState<FiltroInput[]>([]);
   const [todosOsVeiculos, setTodosOsVeiculos] = useState<boolean>(false);
 
   const { modoEdicao } = useFormularioContext();
   const { control, getValues } = useFormContext<ViagemOutput>();
   const { fields: veiculosEmViagem, append, remove } = useFieldArray({ control, name: "veiculos" });
-  const { veiculos: listaVeiculos, loading } = useVeiculosContext();
 
   const semVeiculoSelecionado = 
     veiculosEmViagem === null || 
@@ -41,8 +35,21 @@ export default function DadosVeiculos() {
     veiculosEmViagem?.length === 0 || 
     !veiculosEmViagem?.some((v) => v.principal);
   
+  const mapFromDadoConsulta = (veiculo: any): VeiculoOutput => {
+    if (!veiculo) return null;
+    return {
+      codigo: veiculo['VEI.VEI_CODIGO'],
+      placa: veiculo['VEI.VEI_PLACA'],
+      descricao: veiculo['MOD.MOD_DESCRICAO'],
+      tipo: null,
+      codigoEmpresa: null,
+      tipoRodado: veiculo['TIP.TIP_DESCRICAO'],
+    }
+  }
 
-  const handleAdicionarVeiculo = (veiculo: VeiculoOutput) => {
+  const handleAdicionarVeiculo = (parametro: any) => {
+    const veiculo = mapFromDadoConsulta(parametro)
+
     if (veiculosEmViagem?.some((v) => v.veiculo.codigo === veiculo.codigo)) return;
     
     let principal = false;
@@ -63,28 +70,44 @@ export default function DadosVeiculos() {
     const tipoVeiculoPrincipal = getValues("linha.trecho.tipoVeiculoPrincipal")
     const tipoVeiculoSecundario = getValues("linha.trecho.tipoVeiculoSecundario")
 
-    const filtro1: SearchFilter[] = veiculosViagem.map((frota) => ({ field: "codigo", operation: "<>", value: String(frota.veiculo.codigo) }));
+    const filtros: FiltroInput[] = [];
+    
+    veiculosViagem.forEach(({ veiculo }) => {
+      filtros.push({ campo: "VEI.VEI_CODIGO", operacao: "<>", valor: veiculo.codigo });
+    });
+    
+    const veiculoPrincipalEstaNaViagem = veiculosViagem?.some((v) => v.principal);
+    const veiculoSecundarioEscaNaViagem = veiculosViagem?.some((v) => !v.principal);
 
-    const filtro2: SearchFilter[] = []
-    const veiculoPrincipalFoiAdicionadoAViagem = veiculosViagem?.length > 0 && veiculosViagem?.some((v) => v.principal);
-    const veiculoSecundarioFoiAdicionadoAViagem = 
-      veiculosViagem?.length > 0 
-      && !!tipoVeiculoSecundario 
-      && veiculosViagem?.some((v) => v.veiculo.tipoRodado === tipoVeiculoSecundario);
+    if (!veiculoPrincipalEstaNaViagem) filtros.push({ campo: "TIP.TIP_CODIGO", operacao: "=", valor: TipoRodadoVeiculoEnumMap[tipoVeiculoPrincipal] });
+    else if (!veiculoSecundarioEscaNaViagem) filtros.push({ campo: "TIP.TIP_CODIGO", operacao: "=", valor: TipoRodadoVeiculoEnumMap[tipoVeiculoSecundario] });
+    else filtros.push({ campo: "TIP.TIP_CODIGO", operacao: "=", valor: 0 });
+    
+    if (!todosOsVeiculos) {
+      if (getValues("linha.trecho.tipoProprietarioVeiculo") === TipoProprietarioTrechoEnum.PROPRIO) 
+        filtros.push({ campo: "EMP.EMP_TIPO", operacao: "<>", valor: TipoEmpresaEnumMap[TipoEmpresaEnum.AGENCIA] });
+      else {
+        const trecho = getValues("linha.trecho");
+        const sub_consulta: string = `(SELECT CASE WHEN ORI.EMP_TIPO = 'A' THEN ORI.EMP_CODIGO ELSE DEST.EMP_CODIGO END AS CODIGO FROM T_EMPRESA ORI, T_EMPRESA DEST WHERE ORI.CLD_CODIGO = ${trecho?.origem?.codigo} AND DEST.CLD_CODIGO = ${trecho?.destino?.codigo})`
 
-    if (todosOsVeiculos) {}
-    else if (!veiculoPrincipalFoiAdicionadoAViagem)
-      filtro2.push({ field: "tipoRodado", operation: "=", value: String(tipoVeiculoPrincipal)})
-    else if (!!tipoVeiculoSecundario && !veiculoSecundarioFoiAdicionadoAViagem)
-      filtro2.push({ field: "tipoRodado", operation: "=", value: String(tipoVeiculoSecundario)})
-    else 
-      filtro2.push({ field: "tipoRodado", operation: "=", value: String("-1")})
+        filtros.push({
+          campo: "EMP.EMP_CODIGO",
+          operacao: "=",
+          valor: sub_consulta,
+        });
+      }
 
-    const filtro3: SearchFilter[] = [];
-    if (!todosOsVeiculos) filtro3.push({ field: "codigoEmpresa", operation: "<>", value: "0" });
+      if (getValues("tipoTransferencia") !== TipoTransferenciaEnum.ROTA_ALTERNATIVA) {
+        filtros.push({
+          campo: "VEI.VEI_TIPO",
+          operacao: "=",
+          valor: TipoProprietarioTrechoMap[getValues("linha.trecho.tipoProprietarioVeiculo")],
+        });
+      }
+    }
 
-    setFiltrosFixoSelecaoVeiculos([...filtro1, ...filtro2, ...filtro3]);
-  }
+    setFiltrosFixoSelecaoVeiculos(filtros);
+  };
 
   useEffect(() => {
     onFiltrosFixos(veiculosEmViagem)
@@ -129,36 +152,39 @@ export default function DadosVeiculos() {
               <div className="w-8 h-8 rounded bg-white border border-gray-100 overflow-hidden flex shrink-0 items-center justify-center text-gray-400 font-bold text-xs uppercase">
                 <Truck className="w-4 h-4 text-gray-300" />
               </div>
-              <div className="flex flex-1 flex-col min-w-0 gap-1">
-                <div className="flex justify-between items-start">
+              <div className="flex flex-1 flex-row min-w-0 justify-between">
+                <div className="flex flex-col items-between">
                   <span className="text-xs font-bold text-gray-700">
                     {frota.veiculo.placa} | {frota.veiculo.tipoRodado}
                   </span>
-                  <span className="text-[10px] font-bold bg-gray-200 text-gray-600 px-1 rounded">
-                    {TIPO_VEICULO_TRADUCAO[frota.veiculo.tipo]?.label ?? frota.veiculo.tipo}
+                   <span className="text-[11px] text-gray-400 truncate">
+                    {frota.veiculo.codigo} | {frota.veiculo.descricao}
                   </span>
                   
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] text-gray-400 truncate">
-                    {frota.veiculo.codigo} | {frota.veiculo.descricao}
-                  </span>
-                  <span className={cn("text-[10px] font-bold bg-gray-200 px-1 rounded uppercase", 
-                    frota.principal ? 
-                      "bg-primary text-white shadow-xs" : "bg-gray-200 text-gray-500"
-                      )}>
-                    {frota.principal ? "PRINCIPAL" : "SECUNDÁRIO"}
-                  </span>
+                <div className="flex flex-row gap-2 items-center">
+                  <div className="flex flex-col gap-2 items-center">
+                    {frota?.veiculo?.tipo && 
+                      <span className="text-[10px] font-bold bg-gray-200 text-gray-600 px-1 rounded">
+                        {TIPO_VEICULO_TRADUCAO[frota.veiculo.tipo]?.label ?? frota.veiculo.tipo}
+                      </span>
+                    }
+                    <span className={cn("text-[10px] font-bold bg-gray-200 px-1 rounded uppercase", 
+                      frota.principal ? 
+                        "bg-primary text-white shadow-xs" : "bg-gray-200 text-gray-500"
+                        )}>
+                      {frota.principal ? "PRINCIPAL" : "SECUNDÁRIO"}
+                    </span>
+                  </div>
+                  <Tooltip arrow title="Remover veículo da viagem">
+                    <span>
+                      <button type="button" onClick={() => remove(index)} className="group" disabled={!modoEdicao}>
+                        <Trash className={cn("w-3.5 h-3.5 text-red-500 transition-transform duration-200 group-hover:scale-110", !modoEdicao && "text-gray-400 opacity-50 cursor-not-allowed")} />
+                      </button>
+                    </span>
+                  </Tooltip>
                 </div>
-               
               </div>
-              <Tooltip arrow title="Remover veículo da viagem">
-                <span>
-                  <button type="button" onClick={() => remove(index)} className="group" disabled={!modoEdicao}>
-                    <Trash className={cn("w-3.5 h-3.5 text-red-500 transition-transform duration-200 group-hover:scale-110", !modoEdicao && "text-gray-400 opacity-50 cursor-not-allowed")} />
-                  </button>
-              </span>
-              </Tooltip>
             </div>
           ))}
 
@@ -180,15 +206,14 @@ export default function DadosVeiculos() {
         </button>
       )}
 
-      <SelecaoModal
+      <SelecaoModalApi
         open={modalSelecaoVeiculoOpen}
-        titulo={"Seleção de Veículo"}
-        colunas={COLUNAS_VEICULO}
-        dados={listaVeiculos}
+        chaveConsulta={ConsultasConfig.get().buscarVeiculos}
+        titulo="Selecionar Veículo"
         filtrosFixos={filtrosFixoSelecaoVeiculos}
-        carregando={loading}
-        onClose={() => setModalSelecaoVeiculoOpen(false)}
-        onSelect={handleAdicionarVeiculo}
+        handleFechar={() => setModalSelecaoVeiculoOpen(false)}
+        handleSelecionarRegistro={(row: any) => handleAdicionarVeiculo(row)}
+        colunaChavePrimaria="VEI.VEI_CODIGO"
       />
     </div>
   );

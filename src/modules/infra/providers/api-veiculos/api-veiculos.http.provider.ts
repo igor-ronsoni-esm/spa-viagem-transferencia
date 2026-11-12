@@ -14,7 +14,11 @@ export default class ApiVeiculosHttpProvider {
     });
   }
 
-  public listarVeiculos(): Promise<any> {
-    return this.connector.get<any>("vehicles/all", { });
+  public async listarVeiculos(): Promise<any> {
+    return await this.connector.get<any>("vehicles/all", { });
+  }
+
+  public async buscarVeiculo(codigo: number): Promise<any> {
+    return await this.connector.get<any>(`vehicles/${codigo}`, { });
   }
 }

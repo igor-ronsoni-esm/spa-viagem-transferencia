@@ -30,3 +30,20 @@ export const TipoRodadoVeiculoEnumSchema = z.enum([
 ]);
 
 export const TipoRodadoVeiculoEnum = TipoRodadoVeiculoEnumSchema.enum;
+
+
+export const TipoRodadoVeiculoEnumMap = {
+  "UTILITARIO": 1,
+  "AUTOMOVEL": 2,
+  "MEDIO": 3,
+  "TOCO": 4,
+  "TRUCK": 5,
+  "REBOQUE (JULIETA)": 6,
+  "SEMI-REBOQUE (CARRETA)": 7,
+  "CAVALO MECANICO": 8,
+  "OUTROS": 9,
+  "ONIBUS": 10,
+  "VAN": 11,
+  "EMBARCAÇÃO": 12,
+};
+ 
