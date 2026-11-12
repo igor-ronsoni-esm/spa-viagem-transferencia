@@ -2,7 +2,7 @@
 
 import { Check, Search, X } from "lucide-react";
 import { EmpresaOutput } from '@modules/domain/empresa/schemas/empresa.schema';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@modules/utils/css.util";
 import { useSelecaoEmpresaContext } from "@contexts/empresa/SelecaoEmpresaProvider";
 import { useEmpresasContext } from "@contexts/empresas/EmpresasProvider";
@@ -15,10 +15,70 @@ type Props = {
 export default function DropMenu({ inputRef, handleFechar }: Props) {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filtrados, setFiltrados] = useState<EmpresaOutput[]>([]);
+  
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const { empresa, handleSelecionarEmpresa } = useSelecaoEmpresaContext();
   const { empresas } = useEmpresasContext();
   
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    switch (event.key) {
+    case "Enter":
+    case "ArrowDown":
+      event.preventDefault();
+      focarItem(0);
+      break;
+
+    case "Escape":
+      handleFechar();
+      break;
+  }
+  };
+
+  const handleListKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) => {
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        focarItem(index + 1);
+        break;
+
+      case "ArrowUp":
+        event.preventDefault();
+        if (index === 0) {
+          inputRef.current?.focus();
+        } else {
+          focarItem(index - 1);
+        }
+        break;
+
+      case "Escape":
+        handleFechar();
+        inputRef.current?.focus();
+        break;
+
+      case "Home":
+        event.preventDefault();
+        focarItem(0);
+        break;
+
+      case "End":
+        event.preventDefault();
+        focarItem(filtrados.length - 1);
+        break;
+    }
+  };
+  
+  const focarItem = (index: number) => {
+    const total = filtrados.length;
+    if (total === 0) return;
+
+    const proximo = (index + total) % total;
+    itemRefs.current[proximo]?.focus();
+  };
+
   useEffect(() => {
     const term = searchTerm.toLowerCase().trim();
     setFiltrados(
@@ -45,6 +105,7 @@ export default function DropMenu({ inputRef, handleFechar }: Props) {
             placeholder="Consultar por código ou cidade..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="w-full bg-white border border-gray-200 rounded-lg pl-7 pr-7 py-1.5 text-xs text-gray-800 placeholder-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
           />
           <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2 top-2 pointer-events-none" />
@@ -70,11 +131,15 @@ export default function DropMenu({ inputRef, handleFechar }: Props) {
             Nenhuma empresa encontrada com "{searchTerm}"
           </div>
         ) : (
-          filtrados.map((company) => {
+          filtrados.map((company, index) => {
             const isSelecionado = company.codigo === empresa.codigo;
             return (
               <button
                 key={company.codigo}
+                ref={(el) => {
+                  itemRefs.current[index] = el;
+                }}
+                onKeyDown={(e) => handleListKeyDown(e, index)}
                 type="button"
                 onClick={() => {
                   handleSelecionarEmpresa(company);

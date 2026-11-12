@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 
 export function SelecaoEmpresa() {
   const [menuAberto, setMenuAberto] = useState<boolean>(false);
-  
+
   const searchParams = useSearchParams();
   const { empresa } = useSelecaoEmpresaContext();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -32,7 +32,12 @@ export function SelecaoEmpresa() {
     <div className="relative w-full" ref={containerRef}>
       <button
         type="button"
-        onClick={() => setMenuAberto(!menuAberto)}
+        onClick={() => {
+          setMenuAberto(!menuAberto);
+          setTimeout(() => {
+            inputRef.current?.focus();
+          }, 0);
+        }}
         className={cn(
           "w-full flex items-center justify-between gap-2 p-2 bg-white border rounded-lg text-xs font-bold transition-all cursor-pointer text-left shadow-xs",
           menuAberto
