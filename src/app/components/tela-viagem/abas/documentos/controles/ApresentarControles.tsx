@@ -8,7 +8,7 @@ import ControlesPorDescarregamento from "./ControlesPorDescarregamento";
 export default function ApresentarControles() {
   const { control } = useFormContext<ViagemOutput>();
   const { fields: documentos } = useFieldArray({ control, name: "documentos" });
-
+  // TODO: implementar opção de remover controles individualmente da viagem
   return (
     <div className="space-y-2">
       {(documentos || []).length === 0 ? (

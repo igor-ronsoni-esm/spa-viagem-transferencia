@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef } from 'react';
 import { Building2, ChevronDown } from 'lucide-react';
 import DropMenu from './DropMenu';

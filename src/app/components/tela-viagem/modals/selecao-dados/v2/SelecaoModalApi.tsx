@@ -24,7 +24,6 @@ const NUMERO = /^-?\d+(\.\d+)?$/;
 const mensagemErro = (err: unknown) =>
   err instanceof Error ? err.message : "Erro inesperado ao buscar dados.";
 
-/** Converte o rascunho em filtro da API. Campos numéricos viram number */
 function montarFiltroInput(
   r: FiltroRascunho,
   colunas: ColunaOutput[],
@@ -63,11 +62,9 @@ export default function SelecaoModalApi({
 
   const requestId = useRef(0);
 
-  // Evita refazer a busca a cada render do pai quando o array é recriado
   const fixosKey = JSON.stringify(filtrosFixos);
   const fixos = useMemo<FiltroInput[]>(() => JSON.parse(fixosKey), [fixosKey]);
 
-  // Ao fechar, descarta filtros digitados
   useEffect(() => {
     if (!open) {
       setRascunhos([]);
@@ -75,7 +72,6 @@ export default function SelecaoModalApi({
     }
   }, [open]);
 
-  // 1) Colunas: busca ao abrir
   useEffect(() => {
     if (!open) return;
     let ativo = true;
@@ -98,7 +94,6 @@ export default function SelecaoModalApi({
     };
   }, [open, chaveConsulta]);
 
-  // 2) Dados: busca sempre que as colunas ou os filtros aplicados mudarem
   useEffect(() => {
     if (!open || colunas.length === 0) return;
 
@@ -123,8 +118,6 @@ export default function SelecaoModalApi({
     })();
   }, [open, colunas, filtrosAplicados, fixos, chaveConsulta]);
 
-  /** Ctrl/Cmd + clique: soma o filtro aos existentes.
-   *  Clique simples: mantém somente o filtro da coluna clicada. */
   const adicionarFiltro = (campo: string, somenteEste: boolean) => {
     setRascunhos((prev) => {
       const col = colunas.find((c) => c.fieldName === campo);
@@ -138,7 +131,6 @@ export default function SelecaoModalApi({
       };
 
       if (somenteEste) {
-        // Mantém o rascunho já existente da coluna, se houver, e descarta os demais
         const atual = prev.find((f) => f.campo === campo);
         return [atual ?? novo];
       }
@@ -156,7 +148,6 @@ export default function SelecaoModalApi({
   const removerFiltro = (id: string) =>
     setRascunhos((prev) => prev.filter((f) => f.id !== id));
 
-  /** Botão Filtrar: converte os rascunhos e dispara o useEffect de dados */
   const aplicarFiltros = () => {
     try {
       const aplicados = rascunhos.flatMap((r) => {

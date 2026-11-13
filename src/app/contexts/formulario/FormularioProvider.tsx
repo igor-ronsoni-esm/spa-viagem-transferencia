@@ -27,6 +27,7 @@ export function FormularioProvider({ children }: Props) {
   const handleEditarViagem = () => {  
     setModoEdicao(true);
     setDadosViagemAtual(metodos.watch());
+    
     const searchParamsObj = new URLSearchParams(searchParams.toString());
     searchParamsObj.set("modoEdicao", "true");
     router.replace(`?${searchParamsObj.toString()}`);

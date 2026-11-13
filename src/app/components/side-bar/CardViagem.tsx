@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ViagemResumoOutput } from "@modules/domain/viagem/schemas/resultado-consulta-viagens.schema";
 import { STATUS_CONFIG } from "@constants/config-label";
 import { isTipoTransferenciaEscala, isTipoTransferenciaExtra, isTipoTransferenciaRotaAlternativa } from "@modules/lib/validacoes";
+import { Tooltip } from "@mui/material";
 
 
 type Props = {
@@ -86,9 +87,11 @@ export function CardViagem({ viagem }: Readonly<Props>) {
       </div>
       <div className="flex justify-between items-center mt-2">
         <div className="flex flex-col w-full gap-1">
-          <h3 className="font-bold text-xs text-gray-800 group-hover:text-primary transition-colors truncate">
-            {viagem.linha.descricao || "Linha Extra"}
-          </h3>
+          <Tooltip arrow title={viagem.linha.descricao || "Linha Extra"}>
+            <h3 className="font-bold text-xs text-gray-800 group-hover:text-primary transition-colors truncate">
+              {viagem.linha.descricao || "Linha Extra"}
+            </h3>
+          </Tooltip>
           <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
             <Clock className="w-2.5 h-2.5 shrink-0" />
             <span className="truncate">

@@ -111,10 +111,7 @@ export default function SideBarContent() {
       setViagens(resultado.viagens);
       handleTotais(resultado.viagens);
     } catch (error) {
-      console.error(
-        "[ERROR] Houve um erro ao carregar as informações das viagens. Erro: ",
-        error,
-      );
+      console.error("[ERROR] Houve um erro ao carregar as informações das viagens. Erro: ", error);
     } finally {
       setLoading(false);
     }
@@ -122,17 +119,9 @@ export default function SideBarContent() {
 
   const handleTotais = (resultado: ViagemResumoOutput[]) => {
     const total = resultado.length;
-    const realizadas = resultado.filter(
-      (v) =>
-        isViagemIniciada(v.viagem.chaveStatus) ||
-        isViagemFinalizada(v.viagem.chaveStatus),
-    ).length;
-    const prontas = resultado.filter((v) =>
-      isViagemPronta(v.viagem.chaveStatus),
-    ).length;
-    const pendentes = resultado.filter((v) =>
-      isViagemPendente(v.viagem.chaveStatus),
-    ).length;
+    const realizadas = resultado.filter((v) => isViagemIniciada(v.viagem.chaveStatus) || isViagemFinalizada(v.viagem.chaveStatus)).length;
+    const prontas = resultado.filter((v) => isViagemPronta(v.viagem.chaveStatus)).length;
+    const pendentes = resultado.filter((v) => isViagemPendente(v.viagem.chaveStatus)).length;
 
     const queryParams = new URLSearchParams(searchParams.toString());
     queryParams.set("total", total.toString());

@@ -2,23 +2,14 @@
 
 import { STATUS_TRADUCAO } from "@constants/traducao";
 import { Clipboard, X } from "lucide-react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { resetarViagemNaUrl } from "../../client-utils/search-params";
 
 export default function Header({ viagem }: { viagem: any }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const onClose = () => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    params.delete("viagem");
-    params.delete("modoEdicao");
-
-    const query = params.toString();
-    const url = query ? `?${query}` : "";
-
-    router.replace(`${url}`);
-  };
+  const onClose = () => router.replace(resetarViagemNaUrl(searchParams));
 
   const status = STATUS_TRADUCAO[viagem.status] || STATUS_TRADUCAO.SEM_STATUS;
 

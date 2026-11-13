@@ -6,7 +6,6 @@ import { requireNumber } from "@modules/utils/number.util";
 import { redirect } from "next/navigation";
 import { EmpresasProvider } from "@contexts/empresas/EmpresasProvider";
 import { SelecaoEmpresaProvider } from "@contexts/empresa/SelecaoEmpresaProvider";
-import { VeiculosProvider } from "@contexts/veiculos/VeiculosProvider";
 
 type Props = {
   searchParams: Promise<{

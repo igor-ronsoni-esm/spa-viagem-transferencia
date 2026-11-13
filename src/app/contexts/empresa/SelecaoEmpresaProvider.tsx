@@ -5,6 +5,7 @@ import { EmpresaOutput } from "@modules/domain/empresa/schemas/empresa.schema";
 import { SelecaoEmpresaContext } from "./SelecaoEmpresaContext";
 import { useEmpresasContext } from "@contexts/empresas/EmpresasProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { resetarViagemNaUrl } from "../../client-utils/search-params";
 
 type Props = {
   children: ReactNode;
@@ -21,23 +22,18 @@ export function SelecaoEmpresaProvider({ children }: Props) {
   const pathname = usePathname();
   const { empresas } = useEmpresasContext();
 
-  const handleSelecionarEmpresa = (empresa: EmpresaOutput) => {    
-    const params = new URLSearchParams(searchParams.toString());
-
-    params.delete("viagem");
-    params.delete("modoEdicao");
-
-    const query = params.toString();
-
+  const handleSelecionarEmpresa = (empresa: EmpresaOutput) => {   
     startTransition(() => {
-      router.replace(query ? `${pathname}?${query}` : pathname);
+      handleResetarAoRecarregar()
       setEmpresa(empresa);
     });
   };
 
+  const handleResetarAoRecarregar = () => router.replace(`${pathname}${resetarViagemNaUrl(searchParams)}`);
+
   useEffect(() => {
     if (!empresas) return;
-    const empresaUsuario = 64; //TODO: substituir pelo código da empresa do usuário logado
+    const empresaUsuario = 180; //TODO: substituir pelo código da empresa do usuário logado
     const isUsuarioMatriz = empresaUsuario === CODIGO_EMPRESA_MATRIZ;
     if (isUsuarioMatriz) {
       const empresaPadrao = empresas.find(e => e.codigo === CODIGO_EMPRESA_DEFAULT);

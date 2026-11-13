@@ -6,15 +6,21 @@ import { useState } from "react";
 import UnidadeDescarregamento from "./UnidadeDescarregamento";
 import { Plus, Truck } from "lucide-react";
 import { useFormularioContext } from "@contexts/formulario/FormularioProvider";
+import { DescarregamentoViagemOutput } from "@modules/domain/viagem/schemas/dados-viagem/descarregamento/descarregamento-viagem.schema";
+
+type DescarregamentoViagemType = DescarregamentoViagemOutput & { id: string };
 
 export default function Descarregamentos() {
   const [maximizado, setMaximizado] = useState<boolean>(false);
 
   const { modoEdicao } = useFormularioContext();
   const { control } = useFormContext<ViagemOutput>();
-  const { fields: descarregamentos } = useFieldArray({ control, name: "descarregamentos" });
+  const { fields: descarregamentos, append, remove, update } = useFieldArray({ control, name: "descarregamentos" });
 
-  const handleAdicionarDescarregamento = () => {}
+  const handleAdicionarDescarregamento = () => {
+    if (descarregamentos.some(d => d.incluidoNaEdicao && (d.empresa === null || d.percurso === null || d.percurso === ""))) return;
+    append({ incluidoNaEdicao: true, empresa: null, percurso: null, situacao: "S" } as DescarregamentoViagemType);
+  }
 
   return (
     <div className="bg-white rounded-xl border border-primary/20 p-4 shadow-sm space-y-3">
@@ -66,13 +72,11 @@ export default function Descarregamentos() {
                   onClick={handleAdicionarDescarregamento}
                   className="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-[10px] font-black uppercase tracking-wider cursor-pointer inline-flex items-center gap-1.5"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Incluir primeiro
-                  descarregamento
+                  <Plus className="w-3.5 h-3.5" /> Incluir primeiro descarregamento
                 </button>
               ) : (
                 <p className="text-[10px] text-amber-600 font-semibold">
-                  Clique em "EDITAR VIAGEM" no topo para poder incluir
-                  descarregamentos.
+                  Clique em "EDITAR VIAGEM" no topo para poder incluir descarregamentos.
                 </p>
               )}
             </div>
@@ -80,21 +84,29 @@ export default function Descarregamentos() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="px-3 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest w-[20%]">
+                  <tr className="bg-gray-50 border-b border-gray-100 text-[9px] text-gray-400 uppercase tracking-widest">
+                    <th className="px-3 py-2 w-[10%]">
                       Situação
                     </th>
-                    <th className="px-3 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest w-[35%]">
-                      Empresa (Sigla - Nome)
+                    <th className="px-3 py-2  w-[10%]">
+                      Sigla
                     </th>
-                    <th className="px-3 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest w-[25%]">
-                      Tempo do Percurso
+                    <th className="px-3 py-2  w-[65%]">
+                      Unidade
                     </th>
+                    <th className="px-3 py-2  w-[10%]">
+                      Percurso
+                    </th>
+                    <th className="px-3 py-2 w-[5%]"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {descarregamentos.map((descarregamento) => (
-                    <UnidadeDescarregamento key={descarregamento.id} descarregamento={descarregamento} />
+                  {descarregamentos.map((_, index: number) => (
+                    <UnidadeDescarregamento 
+                      key={index} 
+                      index={index} 
+                      remove={remove}
+                      update={update} />
                   ))}
                 </tbody>
               </table>
