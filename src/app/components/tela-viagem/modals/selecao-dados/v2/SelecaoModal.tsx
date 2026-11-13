@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { X, Loader2, AlertTriangle, Database, Filter } from "lucide-react";
 import { ColunaOutput } from "@modules/domain/api-consulta/schemas/coluna.schema";
 import { Operacao } from "@modules/domain/api-consulta/schemas/filtro.schema";
-import { Row } from "../types";
+import { DadoOutput } from "@modules/domain/api-consulta/schemas/dados.entity";
 
 export const OPERACOES: { value: Operacao; label: string }[] = [
   { value: "=", label: "Igual" },
@@ -28,7 +28,7 @@ type Props = {
   open: boolean;
   titulo?: string;
   colunas: ColunaOutput[];
-  dados: Row[];
+  dados: DadoOutput[];
   /** fieldName da coluna-chave */
   chavePrimaria?: string;
   filtros: FiltroRascunho[];
@@ -43,10 +43,10 @@ type Props = {
   carregando?: boolean;
   erro?: string | null;
   onClose: () => void;
-  onSelect: (row: Row) => void;
+  onSelect: (row: DadoOutput) => void;
 };
 
-const valorCelula = (row: Row, campo: string) => {
+const valorCelula = (row: DadoOutput, campo: string) => {
   const v = row[campo];
   return v === null || v === undefined ? "" : String(v);
 };
@@ -69,7 +69,7 @@ export default function SelecaoModal({
 }: Readonly<Props>) {
   const [selectedKey, setSelectedKey] = useState<string | undefined>();
 
-  const chaveDe = (row: Row, idx: number) =>
+  const chaveDe = (row: DadoOutput, idx: number) =>
     chavePrimaria ? String(row[chavePrimaria]) : `idx-${idx}`;
 
   const selecionado =

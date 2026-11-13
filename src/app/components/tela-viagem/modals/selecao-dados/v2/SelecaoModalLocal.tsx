@@ -12,6 +12,8 @@ type Props<T extends DadoOutput> = {
   titulo?: string;
   dados: T[];
   colunas: ColunaOutput[];
+  carregando?: boolean;
+  erro?: string | null;
   chavePrimaria: string;
   filtrosFixos?: FiltroInput[];
   onSelecionar: (row: T) => void;
@@ -83,13 +85,15 @@ export default function SelecaoModalLocal<T extends DadoOutput>({
   titulo,
   dados,
   colunas,
+  carregando = false,
+  erro = null,
   chavePrimaria,
   filtrosFixos = [],
   onSelecionar,
 }: Readonly<Props<T>>) {
   const [rascunhos, setRascunhos] = useState<FiltroRascunho[]>([]);
   const [filtrosAplicados, setFiltrosAplicados] = useState<FiltroInput[]>([]);
-  const [erro, setErro] = useState<string | null>(null);
+  const [erroInterno, setErro] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -98,6 +102,10 @@ export default function SelecaoModalLocal<T extends DadoOutput>({
       setErro(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (open && !!erro) setErro(erro);
+  }, [erro]);
 
   const dadosFiltrados = useMemo(() => {
     const todosFiltros = [...filtrosFixos, ...filtrosAplicados];
@@ -163,8 +171,8 @@ export default function SelecaoModalLocal<T extends DadoOutput>({
       onAlterarFiltro={alterarFiltro}
       onRemoverFiltro={removerFiltro}
       onAplicarFiltros={aplicarFiltros}
-      carregando={false}
-      erro={erro}
+      carregando={carregando}
+      erro={erroInterno}
       onClose={handleFechar}
       onSelect={(row) => onSelecionar(row as T)}
     />

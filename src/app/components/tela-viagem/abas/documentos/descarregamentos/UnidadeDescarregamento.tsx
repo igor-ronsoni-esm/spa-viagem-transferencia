@@ -68,7 +68,7 @@ export default function UnidadeDescarregamento({ index, remove, update }: Readon
       empresa,
     });
   }
-
+  // TODO: Quando dentro do modal de seleção, ao dar enter está disparando o submit
   return (
     <tr className="hover:bg-gray-50/50 transition-colors">
       <td className="px-3 py-2.5">
